@@ -4,19 +4,9 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
-//using System.Runtime.Serialization.Formatters.Binary;
 using DeNSo.DiskIO;
 using System.Threading;
 using System.IO.MemoryMappedFiles;
-
-#if NETFX_CORE
-using System.Threading.Tasks;
-#endif
-
-#if WINDOWS
-using System.Runtime.Remoting;
-using System.Threading;
-#endif
 
 namespace DeNSo
 {
@@ -104,7 +94,6 @@ namespace DeNSo
       }
       return true;
     }
-
 
     internal static void WriteCommand(BinaryWriter bw, EventCommand command)
     {

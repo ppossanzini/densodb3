@@ -7,27 +7,16 @@ using DeNSo.DiskIO;
 
 using System.Diagnostics;
 using System.IO;
+using DeNSo.Core.DiskIO;
 
 namespace DeNSo
 {
   public class EventStore
   {
-    internal JournalWriter[] _jwriter = null;
-    //internal JournalReader _jreader = null;
+    internal JournalWriter _jwriter = null;
+    internal JournalWriter _operationsLog = null;
 
-    internal JournalWriter[] _operationsLog = null;
-
-#if WINDOWS_PHONE
-    internal System.IO.IsolatedStorage.IsolatedStorageFile iss = System.IO.IsolatedStorage.IsolatedStorageFile.GetUserStoreForApplication();
-#endif
-
-    private volatile Queue<EventCommand> _waitingevents = new Queue<EventCommand>();
-
-#if NETFX_CORE
-    private System.Threading.Tasks.Task _eventHandlerThread = null;
-#else
     private Thread _eventHandlerThread = null;
-#endif
 
     public long LastExecutedCommandSN { get; private set; }
 
@@ -42,22 +31,17 @@ namespace DeNSo
 
       LastExecutedCommandSN = lastcommittedcommandsn;
 
-      JournalReader _jreader = new JournalReader(Configuration.GetBasePath(), dbname);
+      JournalReader _jreader = new JournalReader(FileManager.GetLogFile(Configuration.GetBasePath(), dbname));
       long jsn = LoadUncommittedEventsFromJournal(_jreader);
-      _jreader.CloseFile();
 
-#if NETFX_CORE
-      System.Threading.Tasks.Task.Factory.StartNew(ExecuteEventCommands);
-#else
       CommandsReady.Set();
 
       _eventHandlerThread = new Thread(new ThreadStart(ExecuteEventCommands));
       _eventHandlerThread.Start();
 
       LoadCompleted.WaitOne();
-#endif
 
-      _jwriter = Configuration.BasePath.Select(path => new JournalWriter(path, dbname)).ToArray();
+      _jwriter = new JournalWriter(FileManager.GetLogFile(Configuration.GetBasePath(), dbname));
 
       if (Configuration.EnableOperationsLog)
         _operationsLog = Configuration.BasePath.Select(path => new JournalWriter(path, dbname, true)).ToArray();
@@ -91,9 +75,7 @@ namespace DeNSo
     {
       while (!StoreManager.ShuttingDown)
       {
-        //Debug.Write(string.Format("step1 : {0}", DateTime.Now.ToString("ss:ffff")));
         CommandsReady.WaitOne(5000);
-        //Debug.Write(string.Format("step2 : {0}", DateTime.Now.ToString("ss:ffff")));
         if (_waitingevents.Count == 0)
         {
           CommandsReady.Reset();
@@ -109,25 +91,12 @@ namespace DeNSo
 
         LastExecutedCommandSN = we.CommandSN;
 
-        //if (Debugger.IsAttached)
-        //  if (LastExecutedCommandSN % 1000 == 0)
-        //    Console.Write(string.Format("LEC: {0} - ", LastExecutedCommandSN));
-
         if (Configuration.EnableOperationsLog)
-#if NETFX_CORE
-          _operationsLog.LogCommand(we).Wait();
-#else
-          foreach (var w in _operationsLog)
-            w.LogCommand(we);
-#endif
-
-        //if (_waitingevents.Count == 0)
-        //  Session.RaiseStoreUpdated(LastExecutedCommandSN);
-
+          _operationsLog.LogCommand(we);
       }
     }
 
-    public long Enqueue(string command, string data)
+    public long Enqueue(string command, byte[] data)
     {
       var cmd = new EventCommand() { Command = command, Data = data };
       return Enqueue(cmd);
@@ -135,29 +104,9 @@ namespace DeNSo
 
     public long Enqueue(EventCommand command)
     {
-      long csn = 0;
-      foreach (var w in _jwriter)
-        csn = w.LogCommand(command);
-#if NETFX_CORE
-      csn.Wait();
-      command.CommandSN = csn.Result;
-#else
-      command.CommandSN = csn;
-#endif
-
-      lock (_waitingevents)
-        _waitingevents.Enqueue(command);
-
+      command.CommandSN = _jwriter.LogCommand(command);
       CommandsReady.Set();
-
       return command.CommandSN;
-    }
-
-    public void ShrinkEventStore()
-    {
-      if (_jwriter != null)
-        foreach (var w in _jwriter)
-          w.ShrinkToSN(LastExecutedCommandSN);
     }
   }
 }

@@ -61,6 +61,7 @@
     <Compile Include="EventStore.cs" />
     <Compile Include="Filters\BloomFilter.cs" />
     <Compile Include="LogWriter.cs" />
+    <Compile Include="ObjectStore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CommandQuery\Query.cs" />
     <Compile Include="StoreManager.cs" />

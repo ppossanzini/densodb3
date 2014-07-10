@@ -22,31 +22,17 @@ namespace DeNSo
   public static class StoreManager
   {
     private static DensoExtensions _extensions = new DensoExtensions();
-    private static bool _started = false;
 
-#if NETFX_CORE
-    private static Task _saveDBThread = null;
-    private static Task _indexerThread = null;
-#else
+    private static bool _started = false;
     private static Thread _saveDBThread = null;
     private static Thread _indexerThread = null;
-#endif
 
-    internal static bool ShuttingDown = false;
     internal static ManualResetEvent ShutDownEvent = new ManualResetEvent(false);
+    internal static bool ShuttingDown { get; private set; }
 
-#if WINDOWS_PHONE 
-    internal static System.IO.IsolatedStorage.IsolatedStorageFile iss = System.IO.IsolatedStorage.IsolatedStorageFile.GetUserStoreForApplication();
-#endif
-#if NETFX_CORE
-    internal static Windows.Storage.StorageFolder iss = Windows.Storage.ApplicationData.Current.LocalFolder;
-#endif
+    private volatile static Dictionary<string, Dictionary<string, IObjectStore>> _stores = new Dictionary<string, Dictionary<string, IObjectStore>>();
 
-    private volatile static Dictionary<string, Dictionary<string, IObjectStore>> _stores =
-              new Dictionary<string, Dictionary<string, IObjectStore>>();
-
-    private volatile static Dictionary<string, EventStore> _eventStore =
-              new Dictionary<string, EventStore>();
+    private volatile static Dictionary<string, EventStore> _eventStore = new Dictionary<string, EventStore>();
 
     static StoreManager()
     {
@@ -89,44 +75,28 @@ namespace DeNSo
       return _stores[databasename][collection] as ObjectStore;
     }
 
-#if NETFX_CORE
-    public async static void Start()
-#else
     public static void Start()
-#endif
     {
       if (!_started)
       {
         LogWriter.LogInformation("Starting StoreManager", LogEntryType.Warning);
-        ShuttingDown = false;
         ShutDownEvent.Reset();
 
         LogWriter.LogInformation("Initializing Extensions", LogEntryType.Warning);
         // Init all the extensions. 
         _extensions.Init();
-#if NETFX_CORE
-        foreach (var db in (await GetDatabases()))
-#else
         foreach (var db in (GetDatabases()))
-#endif
         {
           LogWriter.LogInformation(string.Format("Opening Database {0}", db), LogEntryType.Warning);
           OpenDataBase(db);
         }
 
-
-#if NETFX_CORE
-        _saveDBThread = Task.Factory.StartNew(SaveDBThreadMethod);
-        _indexerThread = Task.Factory.StartNew(CheckBloomIndexes);
-#else
         _saveDBThread = new Thread(new ThreadStart(SaveDBThreadMethod));
         _saveDBThread.Start();
 
         _indexerThread = new Thread(new ThreadStart(CheckBloomIndexes));
         _indexerThread.IsBackground = true;
         _indexerThread.Start();
-#endif
-
 
         LogWriter.LogInformation("Store Manager initialization completed", LogEntryType.SuccessAudit);
         _started = true;
@@ -135,25 +105,17 @@ namespace DeNSo
 
     public static void ShutDown()
     {
-      JournalWriter.RaiseCloseEvent();
-      ShuttingDown = true;
       ShutDownEvent.Set();
+      ShuttingDown = true;
       if (_saveDBThread != null)
-#if NETFX_CORE
-        _saveDBThread.Wait((int)new TimeSpan(0, 5, 0).TotalMilliseconds);
-#else
         _saveDBThread.Join((int)new TimeSpan(0, 5, 0).TotalMilliseconds);
-#endif
 
 
-      // remove all Event Store
       Monitor.Enter(_eventStore);
       _eventStore.Clear();
 
       Monitor.Exit(_eventStore);
-      //lock (_stores)
       _stores.Clear();
-
       _started = false;
     }
 
@@ -162,28 +124,9 @@ namespace DeNSo
       get { return _stores.Keys.ToArray(); }
     }
 
-#if NETFX_CORE
-    private async static Task<string[]> GetDatabases()
-#else
     private static string[] GetDatabases()
-#endif
     {
       List<string> result = new List<string>();
-#if NETFX_CORE
-      try
-      {
-        var folder = await iss.GetFolderAsync(Configuration.BasePath);
-        if (folder != null)
-        {
-          foreach (var dir in (await folder.GetFoldersAsync()))
-          {
-            result.Add(dir.Name);
-          }
-        }
-      }
-      catch { }
-
-#else
       if (Directory.Exists(Configuration.GetBasePath()))
       {
         foreach (var dir in Directory.GetDirectories(Configuration.GetBasePath()))
@@ -193,40 +136,21 @@ namespace DeNSo
             result.Add(dinfo.Name);
         }
       }
-#endif
       return result.ToArray();
     }
 
-#if NETFX_CORE
-    private async static void OpenDataBase(string databasename)
-#else
     private static void OpenDataBase(string databasename)
-#endif
     {
       try
       {
         var filename = Path.Combine(Path.Combine(Configuration.GetBasePath(), databasename), "denso.trn");
 
-#if NETFX_CORE
-        var file = await iss.GetFileAsync(filename);
-        var fs = await file.OpenStreamForReadAsync();
-#endif
-
         Monitor.Enter(_eventStore);
         if (!_eventStore.ContainsKey(databasename))
         {
           long eventcommandsn = 0;
-#if WINDOWS_PHONE
-        if (iss.FileExists(filename))
-          using (var fs = iss.OpenFile(filename, FileMode.Open, FileAccess.Read))
-#else
-#if NETFX_CORE
-            using (fs)
-#else
           if (File.Exists(filename))
             using (var fs = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
-#endif
-#endif
               if (fs.Length > 0)
                 using (var br = new BinaryReader(fs))
                   eventcommandsn = br.ReadInt64();
@@ -275,35 +199,17 @@ namespace DeNSo
       }
     }
 
-#if NETFX_CORE
-    internal async static void SaveDataBase(string databasename)
-#else
     internal static void SaveDataBase(string databasename)
-#endif
     {
       var collections = GetCollections(databasename);
       foreach (var coll in collections)
         GetObjectStore(databasename, coll).SaveCollection();
-      //SaveCollection(databasename, coll);
 
       var es = GetEventStore(databasename);
-#if WINDOWS_PHONE 
-      using (var fs = iss.CreateFile(Path.Combine(Path.Combine(Configuration.BasePath, databasename), "denso.trn")))
-#else
-#if NETFX_CORE
-      var file = await iss.CreateFileAsync(Path.Combine(Path.Combine(Configuration.BasePath, databasename), "denso.trn"), Windows.Storage.CreationCollisionOption.ReplaceExisting);
-      using (var fs = await file.OpenStreamForWriteAsync())
-
-#else
       foreach (var path in Configuration.BasePath)
         using (var fs = File.Create(Path.Combine(Path.Combine(path, databasename), "denso.trn")))
-#endif
-#endif
         using (var bw = new BinaryWriter(fs))
           bw.Write(es.LastExecutedCommandSN);
-
-      es.ShrinkEventStore();
     }
-
   }
 }

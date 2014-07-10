@@ -12,7 +12,7 @@ namespace DeNSo.Core.DiskIO
   {
     private volatile static Dictionary<string, MemoryMappedFile> _mappedfiles = new Dictionary<string, MemoryMappedFile>();
 
-    public static MemoryMappedFile GetLogFile(string basepath, string databasename, long capacity, MemoryMappedFileAccess access, bool isoperationlog = false)
+    public static MemoryMappedFile GetLogFile(string basepath, string databasename, long capacity = 10485760, MemoryMappedFileAccess access = MemoryMappedFileAccess.ReadWrite, bool isoperationlog = false)
     {
       if (!Directory.Exists(Path.Combine(basepath, databasename)))
       {
