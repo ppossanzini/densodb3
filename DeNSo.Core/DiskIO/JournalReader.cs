@@ -60,6 +60,35 @@ namespace DeNSo
       return false;
     }
 
+    internal long SeekToSN(long sn)
+    {
+      var csn = 0L;
+      while (HasCommandsPending())
+      {
+        var position = _reader.BaseStream.Position;
+        var k = _reader.ReadChar();
+        if (k == 'K')
+        {
+          csn = _reader.ReadInt64();
+          if (sn != null && csn <= sn)
+          {
+            _reader.BaseStream.Position = position;
+            return csn;
+          }
+
+          _reader.ReadString();
+          var d = _reader.ReadChar();
+          if (d == 'D')
+          {
+            string command = _reader.ReadString();
+            int datalen = _reader.ReadInt32();
+            byte[] data = _reader.ReadBytes(datalen);
+          }
+        }
+      }
+      return csn;
+    }
+
     internal EventCommand ReadCommand()
     {
       var k = _reader.ReadChar();

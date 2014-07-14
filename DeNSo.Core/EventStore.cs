@@ -15,6 +15,7 @@ namespace DeNSo
   {
     internal JournalWriter _jwriter = null;
     internal JournalWriter _operationsLog = null;
+    internal JournalReader _jreader = null;
 
     private Thread _eventHandlerThread = null;
 
@@ -31,8 +32,8 @@ namespace DeNSo
 
       LastExecutedCommandSN = lastcommittedcommandsn;
 
-      JournalReader _jreader = new JournalReader(FileManager.GetLogFile(Configuration.GetBasePath(), dbname));
-      long jsn = LoadUncommittedEventsFromJournal(_jreader);
+      _jreader = new JournalReader(FileManager.GetLogFile(Configuration.GetBasePath(), dbname));
+      long jsn = MoveToUncommittedEventsFromJournal(_jreader);
 
       CommandsReady.Set();
 
@@ -44,30 +45,14 @@ namespace DeNSo
       _jwriter = new JournalWriter(FileManager.GetLogFile(Configuration.GetBasePath(), dbname));
 
       if (Configuration.EnableOperationsLog)
-        _operationsLog = Configuration.BasePath.Select(path => new JournalWriter(path, dbname, true)).ToArray();
+        _operationsLog = new JournalWriter(FileManager.GetLogFile(Configuration.GetBasePath(), dbname, isoperationlog: true));
 
-      // The journal can be empty so i have to evaluate the last committed command serial number 
-      // and reset Command Serial number in the journal to ensure command execution coherency.
-      foreach (var w in _jwriter)
-        w.CommandSN = Math.Max(jsn, lastcommittedcommandsn);
+      _jwriter.CommandSN = Math.Max(jsn, lastcommittedcommandsn);
     }
 
-    internal long LoadUncommittedEventsFromJournal(JournalReader _jreader)
+    internal long MoveToUncommittedEventsFromJournal(JournalReader _jreader)
     {
-      long journalsn = 0;
-
-      while (_jreader.HasCommandsPending())
-      {
-        var cmd = _jreader.ReadCommand();
-        if (cmd != null)
-        {
-          if (cmd.CommandSN > LastExecutedCommandSN)
-          {
-            _waitingevents.Enqueue(cmd);
-          }
-          journalsn = Math.Max(journalsn, cmd.CommandSN);
-        }
-      }
+      long journalsn = _jreader.SeekToSN(LastExecutedCommandSN);
       return journalsn;
     }
 
@@ -76,17 +61,14 @@ namespace DeNSo
       while (!StoreManager.ShuttingDown)
       {
         CommandsReady.WaitOne(5000);
-        if (_waitingevents.Count == 0)
+        if (!_jreader.HasCommandsPending())
         {
           CommandsReady.Reset();
           LoadCompleted.Set();
           continue;
         }
 
-        EventCommand we;
-        lock (_waitingevents)
-          we = _waitingevents.Dequeue();
-
+        EventCommand we = _jreader.ReadCommand();
         EventHandlerManager.ExecuteCommandEvent(DatabaseName, we);
 
         LastExecutedCommandSN = we.CommandSN;

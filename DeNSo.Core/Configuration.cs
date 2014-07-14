@@ -22,7 +22,7 @@ namespace DeNSo
 
     public static bool EnableJournaling { get; set; }
     public static bool EnableOperationsLog { get; set; }
-
+    public static bool EnableDataCompression { get; set; }
     public static bool EnsureAtomicWrites { get; set; }
 
     private static DensoExtensions _extensions = new DensoExtensions();
@@ -53,6 +53,7 @@ namespace DeNSo
       DictionarySplitSize = 20000;
       EnableJournaling = true;
       EnsureAtomicWrites = false;
+      EnableDataCompression = true;
     }
 
     public static string GetBasePath()

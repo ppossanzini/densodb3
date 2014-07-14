@@ -52,6 +52,7 @@
     <Compile Include="DiskIO\FileManager.cs" />
     <Compile Include="DiskIO\JournalReader.cs" />
     <Compile Include="DiskIO\JournalWriter.cs" />
+    <Compile Include="EventHandler.cs" />
     <Compile Include="EventHandlers\BaseCommandHandler.cs" />
     <Compile Include="EventHandlers\CollectionFlushHandler.cs" />
     <Compile Include="EventHandlers\DeleteHandler.cs" />
@@ -60,6 +61,7 @@
     <Compile Include="EventHandlers\UpdateHandler.cs" />
     <Compile Include="EventStore.cs" />
     <Compile Include="Filters\BloomFilter.cs" />
+    <Compile Include="Filters\Compressor.cs" />
     <Compile Include="LogWriter.cs" />
     <Compile Include="ObjectStore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
