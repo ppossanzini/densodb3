@@ -1,5 +1,5 @@
 
-DeNSo DB
+DeNSo DB - version 3
 ================================================
 DensoDB is a new NoSQL document database. Written for .Net environment in c# language.  
 It's simple, fast and reliable.
