@@ -111,40 +111,44 @@ namespace DeNSo.Server.Controllers
       });
     }
 
-    //[HttpGet]
-    //[Route("{database}/{collection}/where/{field?}/{id?}")]
-    //public HttpResponseMessage Search(string database, string collection, string field = null, string id = null)
-    //{
-    //  try
-    //  {
-    //    StringBuilder sb = new StringBuilder();
-    //    IEnumerable<string> result = null;
-    //    sb.Append("[");
-    //    if (!string.IsNullOrEmpty(field) && !string.IsNullOrEmpty(id))
-    //      result = StoreManager.GetObjectStore(database, collection).Where(j => j[field].ToString() == id).AsEnumerable();
-    //    else
-    //      result = StoreManager.GetObjectStore(database, collection).GetAll();
+    [HttpGet]
+    [Route("{database}/{collection}/where/{field?}/{id?}")]
+    public HttpResponseMessage Search(string database, string collection, string field = null, string id = null)
+    {
+      try
+      {
+        StringBuilder sb = new StringBuilder();
+        List<string> result = new List<string>();
+        sb.Append("[");
 
-    //    var index = 0;
-    //    foreach (var r in result)
-    //    {
-    //      if (index > 0) sb.Append(",");
-    //      index++;
-    //      sb.Append(r);
+        var values = StoreManager.GetObjectStore(database, collection).GetAll();
+        foreach (var value in values)
+          if (DeNSo.Configuration.EnableDataCompression)
+            result.Add(value.Decompress());
+          else
+            result.Add(Encoding.UTF8.GetString(value));
 
-    //    }
-    //    sb.Append("]");
-    //    return new HttpResponseMessage
-    //    {
-    //      Content = new StringContent(sb.ToString(), System.Text.Encoding.UTF8, "application/json")
-    //    };
-    //  }
-    //  catch (Exception ex)
-    //  {
-    //    Debug.WriteLine(ex.Message);
-    //  }
-    //  return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("{}", System.Text.Encoding.UTF8, "application/json") };
-    //}
+
+        var index = 0;
+        foreach (var r in result)
+        {
+          if (index > 0) sb.Append(",");
+          index++;
+          sb.Append(r);
+
+        }
+        sb.Append("]");
+        return new HttpResponseMessage
+        {
+          Content = new StringContent(sb.ToString(), System.Text.Encoding.UTF8, "application/json")
+        };
+      }
+      catch (Exception ex)
+      {
+        Debug.WriteLine(ex.Message);
+      }
+      return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("{}", System.Text.Encoding.UTF8, "application/json") };
+    }
 
     [HttpGet]
     [Route("{database}/{collection}/count")]

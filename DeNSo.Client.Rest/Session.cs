@@ -90,25 +90,25 @@ namespace DeNSo.REST
 
     public EventCommandStatus SetAll<T>(IEnumerable<T> entity) where T : class
     {
-      List<Task<EventCommandStatus>> tasks = new List<Task<EventCommandStatus>>();
+      long rr = 0;
       foreach (var item in entity)
       {
-        tasks.Add(Task.Factory.StartNew(() => Set<T>(item)));
+        var r = Set<T>(item);
+        rr = Math.Max(r.Value, rr);
       }
 
-      Task.WaitAll(tasks.ToArray());
-      return new EventCommandStatus() { Value = tasks.Select(t => t.Result.Value).Max() };
+      return new EventCommandStatus() { Value = rr };
     }
 
     public EventCommandStatus SetAll<T>(string collection, IEnumerable<T> entity) where T : class
     {
-      List<Task<EventCommandStatus>> tasks = new List<Task<EventCommandStatus>>();
+      long rr = 0;
       foreach (var item in entity)
       {
-        tasks.Add(Task.Factory.StartNew(() => Set<T>(collection, item)));
+        var r = Set<T>(collection, item);
+        rr = Math.Max(r.Value, rr);
       }
-      Task.WaitAll(tasks.ToArray());
-      return new EventCommandStatus() { Value = tasks.Select(t => t.Result.Value).Max() };
+      return new EventCommandStatus() { Value = rr };
     }
 
     #endregion

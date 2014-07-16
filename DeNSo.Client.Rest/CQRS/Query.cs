@@ -32,7 +32,6 @@ namespace DeNSo.REST.CQRS
 
     public string Get(string database, string collection, string field, string id)
     {
-      throw new NotSupportedException();
       return _client.DownloadString(string.Format("rest/{0}/{1}/where/{2}/{3}", database, collection, field, id));
     }
 
