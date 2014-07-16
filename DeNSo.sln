@@ -16,8 +16,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{71F6EB
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeNSo.Client.InProcess", "DeNSo.Client.InProcess\DeNSo.Client.InProcess.csproj", "{89BAC01D-3187-40FA-9519-B35741523A60}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "basetest", "basetest\basetest.csproj", "{CE6CEC92-B14A-4ECC-9E4E-EDD13716E6E4}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeNSo.Server", "DeNSo.Server\DeNSo.Server.csproj", "{DC31D1ED-EA3C-4E45-963D-6037D16F0D97}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeNSo.Client.Rest", "DeNSo.Client.Rest\DeNSo.Client.Rest.csproj", "{99328297-D0A3-430C-BDE2-7729CAFBED47}"
@@ -40,10 +38,6 @@ Global
 		{89BAC01D-3187-40FA-9519-B35741523A60}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{89BAC01D-3187-40FA-9519-B35741523A60}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{89BAC01D-3187-40FA-9519-B35741523A60}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CE6CEC92-B14A-4ECC-9E4E-EDD13716E6E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CE6CEC92-B14A-4ECC-9E4E-EDD13716E6E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CE6CEC92-B14A-4ECC-9E4E-EDD13716E6E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CE6CEC92-B14A-4ECC-9E4E-EDD13716E6E4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DC31D1ED-EA3C-4E45-963D-6037D16F0D97}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DC31D1ED-EA3C-4E45-963D-6037D16F0D97}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DC31D1ED-EA3C-4E45-963D-6037D16F0D97}.Release|Any CPU.ActiveCfg = Release|Any CPU
