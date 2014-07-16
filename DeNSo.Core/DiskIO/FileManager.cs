@@ -10,9 +10,9 @@ namespace DeNSo.Core.DiskIO
 {
   internal static class FileManager
   {
-    private volatile static Dictionary<string, MemoryMappedFile> _mappedfiles = new Dictionary<string, MemoryMappedFile>();
+    private volatile static Dictionary<string, FileStream> _mappedfiles = new Dictionary<string, FileStream>();
 
-    public static MemoryMappedFile GetLogFile(string basepath, string databasename, long capacity = 10485760, MemoryMappedFileAccess access = MemoryMappedFileAccess.ReadWrite, bool isoperationlog = false)
+    public static FileStream GetLogFile(string basepath, string databasename, long capacity = 10485760, MemoryMappedFileAccess access = MemoryMappedFileAccess.ReadWrite, bool isoperationlog = false)
     {
       if (!Directory.Exists(Path.Combine(basepath, databasename)))
       {
@@ -33,12 +33,17 @@ namespace DeNSo.Core.DiskIO
       var filename = Path.Combine(Path.Combine(basepath, databasename), string.Format("denso.{0}", isoperationlog ? "log" : "jnl"));
       lock (_mappedfiles)
       {
-        if (_mappedfiles.ContainsKey(filename))
-          return _mappedfiles[filename];
+        //if (_mappedfiles.ContainsKey(filename))
+        //  return _mappedfiles[filename];
 
-        var nmf = MemoryMappedFile.CreateOrOpen(filename, capacity, access);
-        _mappedfiles.Add(filename, nmf);
-        return nmf;
+        if (!File.Exists(filename))
+          File.WriteAllBytes(filename, new byte[0]);
+
+
+        var fs = File.Open(filename, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+        //var nmf = MemoryMappedFile.CreateFromFile(fs, new Guid().ToString(), capacity, MemoryMappedFileAccess.ReadWrite, null, HandleInheritability.None, true);
+        //_mappedfiles.Add(filename, fs);
+        return fs;
       }
     }
   }

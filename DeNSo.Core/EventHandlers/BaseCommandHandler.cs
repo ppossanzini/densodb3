@@ -10,7 +10,7 @@ namespace DeNSo.EventHandlers
 {
   public abstract class BaseCommandHandler : ICommandHandler
   {
-    public void HandleCommand(IStore store, JObject command, string data)
+    public void HandleCommand(IStore store, JObject command, byte[] data)
     {
       //JObject value = null;
       var collection = string.Empty;
@@ -34,14 +34,7 @@ namespace DeNSo.EventHandlers
     public abstract void OnHandle(IStore store,
                              string collection,
                              JObject command,
-                             string document);
-
-    //protected static JToken GetValue(JObject document)
-    //{
-    //  if (document.HasProperty(CommandKeyword.Value))
-    //    return document[CommandKeyword.Value] as BSonDoc;
-    //  return document;
-    //}
+                             byte[] document);
 
     protected static string[] GetRealProperties(JObject document)
     {

@@ -21,7 +21,7 @@ namespace DeNSo.EventHandlers
     public override void OnHandle(IStore store,
                                   string collection,
                                   JObject command,
-                                  string document)
+                                  byte[] document)
     {
       IObjectStore st = store.GetCollection(collection);
       if (document != null)

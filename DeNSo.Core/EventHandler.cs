@@ -24,12 +24,8 @@ namespace DeNSo
       foreach (var hand in handlers)
       {
         LogWriter.LogInformation(string.Format("Registering command handler {0}", hand.GetType().Name), LogEntryType.Information);
-
-#if NETFX_CORE
-        var attrs = hand.GetType().GetTypeInfo().GetCustomAttributes<HandlesCommandAttribute>(true);
-#else
         var attrs = hand.GetType().GetCustomAttributes(typeof(DeNSo.HandlesCommandAttribute), true);
-#endif
+
         foreach (var at in attrs)
         {
           string commandname = ((DeNSo.HandlesCommandAttribute)at).Command;
@@ -57,8 +53,6 @@ namespace DeNSo
     {
       var store = new ObjectStoreWrapper(database);
 
-      //LogWriter.LogInformation("Executing waiting event", LogEntryType.Information);
-      #region Execute inline global event handlers
       foreach (var ge in _globaleventhandlers)
       {
         try
@@ -70,10 +64,9 @@ namespace DeNSo
           LogWriter.LogException(ex);
         }
       }
-      #endregion
 
       var command = JObject.Parse(waitingevent.Command);
-      
+
       var currenthandlers = ChechHandlers(command);
       if (currenthandlers != null)
         foreach (var hh in currenthandlers)
@@ -95,8 +88,6 @@ namespace DeNSo
       var r = command.Property(CommandKeyword.Action);
       if (r != null)
         actionname = ((string)r ?? string.Empty).ToString();
-
-      //LogWriter.LogInformation(string.Format("Executing action {0}", string.Empty), LogEntryType.Information);
 
       if (_commandHandlers.ContainsKey(actionname))
         return _commandHandlers[actionname].ToArray();

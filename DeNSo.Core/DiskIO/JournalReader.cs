@@ -23,7 +23,8 @@ namespace DeNSo
   {
     #region private fields
 
-    private MemoryMappedViewStream _logfile = null;
+    //private MemoryMappedViewStream _logfile = null;
+    private FileStream _logfile = null;
     private BinaryReader _reader = null;
 
     #endregion
@@ -34,18 +35,19 @@ namespace DeNSo
 
     #endregion
 
-    internal JournalReader(MemoryMappedFile mappedfile)
+    internal JournalReader(FileStream mappedfile)
     {
       LogWriter.LogInformation("Initializing Journal Reader", LogEntryType.Information);
       OpenLogFile(mappedfile);
     }
 
-    private void OpenLogFile(MemoryMappedFile mappedfiles)
+    private void OpenLogFile(FileStream mappedfiles)
     {
       try
       {
-        _logfile = mappedfiles.CreateViewStream();
-        _reader = new BinaryReader(_logfile);
+        //_logfile = mappedfiles.CreateViewStream();
+        _logfile = mappedfiles;
+        _reader = new BinaryReader(mappedfiles);
       }
       catch (Exception ex)
       {
@@ -60,6 +62,17 @@ namespace DeNSo
       return false;
     }
 
+    internal void SeekToBeginning()
+    {
+      _logfile.Seek(0, SeekOrigin.Begin);
+    }
+
+
+    internal void Close()
+    {
+      _logfile.Close();
+    }
+
     internal long SeekToSN(long sn)
     {
       var csn = 0L;
@@ -70,7 +83,7 @@ namespace DeNSo
         if (k == 'K')
         {
           csn = _reader.ReadInt64();
-          if (sn != null && csn <= sn)
+          if (sn != null && csn >= sn)
           {
             _reader.BaseStream.Position = position;
             return csn;

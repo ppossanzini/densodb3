@@ -18,7 +18,7 @@ namespace DeNSo.EventHandlers
   [Export(typeof(ICommandHandler))]
   public class CollectionFlushHandler : ICommandHandler
   {
-    public void HandleCommand(IStore store, JObject command, string value)
+    public void HandleCommand(IStore store, JObject command, byte[] value)
     {
       var r = command.Property(CommandKeyword.Collection);
       if (r != null)

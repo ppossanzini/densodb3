@@ -14,11 +14,11 @@ namespace DeNSo
 
   public interface IObjectStore
   {
-    IEnumerable<string> Where(Func<JObject, bool> filter);
-    void Set(string key, string document);
+    //IEnumerable<byte[]> Where(Func<JObject, bool> filter);
+    void Set(string key, byte[] document);
     void Remove(string key);
     void Flush();
-    string GetById(string key);
+    byte[] GetById(string key);
 
     float IncoerenceIndexRatio();
     void Reindex();

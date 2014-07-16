@@ -32,6 +32,8 @@ namespace DeNSo
 
       LastExecutedCommandSN = lastcommittedcommandsn;
 
+      ShrinkLog();
+
       _jreader = new JournalReader(FileManager.GetLogFile(Configuration.GetBasePath(), dbname));
       long jsn = MoveToUncommittedEventsFromJournal(_jreader);
 
@@ -49,6 +51,24 @@ namespace DeNSo
 
       _jwriter.CommandSN = Math.Max(jsn, lastcommittedcommandsn);
     }
+
+    private void ShrinkLog()
+    {
+      _jreader = new JournalReader(FileManager.GetLogFile(Configuration.GetBasePath(), DatabaseName));
+      long jsn = MoveToUncommittedEventsFromJournal(_jreader);
+
+
+      //Shrink the journal to the end. 
+      _jwriter = new JournalWriter(FileManager.GetLogFile(Configuration.GetBasePath(), DatabaseName), JournalWriterMode.ShrinkMode);
+      while (_jreader.HasCommandsPending())
+      {
+        _jwriter.LogCommand(_jreader.ReadCommand());
+      }
+      _jreader.SeekToBeginning();
+      _jreader.Close();
+      _jwriter.CloseFile();
+    }
+
 
     internal long MoveToUncommittedEventsFromJournal(JournalReader _jreader)
     {

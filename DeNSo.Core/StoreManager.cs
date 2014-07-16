@@ -48,7 +48,7 @@ namespace DeNSo
 
     public static EventStore GetEventStore(string databasename)
     {
-      if (Monitor.TryEnter(_eventStore, 1000))
+      Monitor.Enter(_eventStore);
       {
         if (!_eventStore.ContainsKey(databasename))
           _eventStore.Add(databasename, new EventStore(databasename, 0));
@@ -159,7 +159,9 @@ namespace DeNSo
         }
         Monitor.Exit(_eventStore);
       }
-      catch { }
+      catch (Exception e){
+        LogWriter.LogException(e);
+      }
     }
 
     private static void SaveDBThreadMethod()

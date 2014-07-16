@@ -10,13 +10,25 @@ using System.IO.MemoryMappedFiles;
 
 namespace DeNSo
 {
+  public enum JournalWriterMode
+  {
+    ShrinkMode,
+    Normal
+  }
+
   internal class JournalWriter
   {
     #region private fields
 
     private object _filemonitor = new Object();
-    private MemoryMappedViewStream _logfile = null;
+    //private MemoryMappedViewStream _logfile = null;
+    private FileStream _logfile = null;
     private BinaryWriter _writer = null;
+
+    private const int MByte = 1024 * 1204;
+    private int _increasefileby = 2 * MByte;
+
+    private JournalWriterMode _currentmode = JournalWriterMode.Normal;
 
     #endregion
 
@@ -26,17 +38,23 @@ namespace DeNSo
 
     #endregion
 
-    internal JournalWriter(MemoryMappedFile mappedfile)
+    internal JournalWriter(FileStream mappedfile, JournalWriterMode mode = JournalWriterMode.Normal)
     {
       LogWriter.SeparationLine();
       LogWriter.LogInformation("Initializing Journal Writer", LogEntryType.Information);
-      OpenLogFile(mappedfile);
+      _currentmode = mode;
+      OpenLogFile(mappedfile, mode);
     }
 
     public long LogCommand(EventCommand command)
     {
       Monitor.Enter(_filemonitor);
-      CommandSN++;
+      //CommandSN++;
+
+      if (_currentmode == JournalWriterMode.ShrinkMode)
+        CommandSN = command.CommandSN;
+      else
+        CommandSN++;
 
       _writer.Write('K');
       _writer.Write(CommandSN);
@@ -56,12 +74,14 @@ namespace DeNSo
       return CommandSN;
     }
 
-    private void CloseFile()
+    internal void CloseFile()
     {
       Monitor.Enter(_filemonitor);
       if (_logfile != null)
       {
         _writer.Flush();
+        _logfile.Flush();
+        _logfile.SetLength(_logfile.Position);
         _writer.Close();
         _logfile.Close();
 
@@ -71,7 +91,7 @@ namespace DeNSo
       Monitor.Exit(_filemonitor);
     }
 
-    private bool OpenLogFile(MemoryMappedFile file)
+    private bool OpenLogFile(FileStream file, JournalWriterMode position)
     {
       try
       {
@@ -80,8 +100,10 @@ namespace DeNSo
 
           Monitor.Enter(_filemonitor);
 
-          _logfile = file.CreateViewStream();
-          _logfile.Seek(0, SeekOrigin.End);
+          //_logfile = file.CreateViewStream();
+          _logfile = file;
+          if (position == JournalWriterMode.Normal)
+            _logfile.Seek(0, SeekOrigin.End);
           _writer = new BinaryWriter(_logfile);
 
           Monitor.Exit(_filemonitor);
@@ -95,20 +117,16 @@ namespace DeNSo
       return true;
     }
 
-    internal static void WriteCommand(BinaryWriter bw, EventCommand command)
+    private void IncreaseFileSize()
     {
-      bw.Write('K');
-      bw.Write(command.CommandSN);
-      bw.Write(command.CommandMarker ?? string.Empty);
-      bw.Write('D');
-      bw.Write(command.Command);
-      if (command.Data != null && command.Data.Length > 0)
-      {
-        bw.Write(command.Data.Length);
-        bw.Write(command.Data);
-      }
-      else
-        bw.Write((int)0);
+      if (Debugger.IsAttached) return;
+
+      LogWriter.LogInformation("Journalig file is too small, make it bigger", LogEntryType.Information);
+      var pos = _logfile.Position;
+      _logfile.SetLength(pos + _increasefileby);
+      _logfile.Flush();
+      _logfile.Position = pos;
     }
+
   }
 }

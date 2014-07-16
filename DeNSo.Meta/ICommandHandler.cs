@@ -9,6 +9,6 @@ namespace DeNSo
 {
   public interface ICommandHandler
   {
-    void HandleCommand(IStore store, JObject command, string value);
+    void HandleCommand(IStore store, JObject command, byte[] value);
   }
 }

@@ -21,7 +21,7 @@ namespace DeNSo.EventHandlers
     public override void OnHandle(IStore store,
                                   string collection,
                                   JObject command,
-                                  string document)
+                                  byte[] document)
     {
       if (document == null || string.IsNullOrEmpty(collection)) return;
       IObjectStore st = store.GetCollection(collection);
@@ -32,7 +32,7 @@ namespace DeNSo.EventHandlers
       }
     }
 
-    private static void UpdateSingleDocument(string value, string id, IObjectStore store)
+    private static void UpdateSingleDocument(byte[] value, string id, IObjectStore store)
     {
       var document = JObject.Parse(value);
       var objid = (string)document[DocumentMetadata.IdPropertyName];
