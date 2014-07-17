@@ -27,12 +27,39 @@ namespace DeNSo.REST.CQRS
 
     public string Get(string database, string collection, string objectid)
     {
-      return _client.DownloadString(string.Format("rest/{0}/{1}/get/{2}", database, collection, objectid));
+      var result = _client.DownloadData(string.Format("rest/{0}/{1}/getbinary/{2}", database, collection, objectid));
+      if (result != null && result.Length > 0)
+        return result.Decompress();
+      return null;
     }
 
-    public string Get(string database, string collection, string field, string id)
+    public IEnumerable<string> GetAll(string database, string collection)
     {
-      return _client.DownloadString(string.Format("rest/{0}/{1}/where/{2}/{3}", database, collection, field, id));
+      var kvalues = _client.DownloadString(string.Format("rest/{0}/{1}/get", database, collection));
+      var keys = JsonConvert.DeserializeObject<List<string>>(kvalues);
+
+
+      foreach (var k in keys)
+      {
+        yield return Get(database, collection, k);
+      }
+    }
+
+    public IEnumerable<string> Get(string database, string collection, string field, string id)
+    {
+      if (string.IsNullOrEmpty(field) || string.IsNullOrEmpty(id))
+        foreach (var val in GetAll(database, collection))
+          yield return val;
+      else
+      {
+        var kvalues = _client.DownloadString(string.Format("rest/{0}/{1}/where/{2}/{3}", database, collection, field, id));
+        var keys = JsonConvert.DeserializeObject<List<string>>(kvalues);
+
+        foreach (var k in keys)
+        {
+          yield return Get(database, collection, k);
+        }
+      }
     }
 
     public int Count(string database, string collection)

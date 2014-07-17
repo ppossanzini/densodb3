@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DeNSo.Core
+namespace DeNSo
 {
   public static class StringCompressor
   {

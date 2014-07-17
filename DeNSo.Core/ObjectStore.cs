@@ -50,6 +50,12 @@ namespace DeNSo
         return _primarystore.Values;
     }
 
+    public IEnumerable<string> GetAllKeys()
+    {
+      lock (_primarystore)
+        return _primarystore.Keys.AsEnumerable();
+    }
+
     public byte[] GetById(string key)
     {
       return InternalDictionaryGet(key);

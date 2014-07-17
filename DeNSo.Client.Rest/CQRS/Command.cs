@@ -28,7 +28,7 @@ namespace DeNSo.REST.CQRS
     public long Set(string database, string collection, string id, string values)
     {
       long result = -1;
-      long.TryParse(_client.UploadString(string.Format("rest/{0}/{1}/set/{2}", database, collection, id), "POST", string.Format("{0}", values)), out result);
+      _client.UploadData(string.Format("rest/{0}/{1}/setbinary/{2}", database, collection, id), "POST", values.Compress());
       return result;
     }
 

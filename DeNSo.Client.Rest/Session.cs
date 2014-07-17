@@ -21,8 +21,6 @@ namespace DeNSo.REST
     private Query _query = null;
 
     private ManualResetEvent _waiting = new ManualResetEvent(false);
-    private long _waitingfor = 0;
-    private long _lastexecutedcommand = 0;
     private string _serveruri;
 
     public static string DefaultDataBase { get; set; }
@@ -167,53 +165,73 @@ namespace DeNSo.REST
 
     public IEnumerable<T> Get<T>() where T : class, new()
     {
-      return JsonConvert.DeserializeObject<List<T>>(GetJSon(typeof(T).Name)) as IEnumerable<T>;
+      var result = new List<T>();
+      var values = GetJSon(typeof(T).Name);
+      foreach (var val in values)
+        result.Add(JsonConvert.DeserializeObject<T>(val));
+      return result;
     }
 
     public async Task<IEnumerable<T>> GetAsync<T>() where T : class, new()
     {
-      var result = await GetJSonAsync(typeof(T).Name);
-      return await JsonConvert.DeserializeObjectAsync<List<T>>(result) as IEnumerable<T>;
+      var values = await GetJSonAsync(typeof(T).Name);
+
+      var result = new List<T>();
+      foreach (var val in values)
+        result.Add(await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<T>(val)));
+
+      return result;
     }
 
     public IEnumerable<T> Get<T>(string field, string id) where T : class, new()
     {
-      return JsonConvert.DeserializeObject<List<T>>(GetJSon(typeof(T).Name, field, id)) as IEnumerable<T>;
+      var values = GetJSon(typeof(T).Name, field, id);
+      //var result = new List<T>();
+      foreach (var val in values)
+        yield return JsonConvert.DeserializeObject<T>(val);
     }
 
     public async Task<IEnumerable<T>> GetAsync<T>(string field, string id) where T : class, new()
     {
-      var result = await GetJSonAsync(typeof(T).Name, field, id);
-      return await JsonConvert.DeserializeObjectAsync<List<T>>(result) as IEnumerable<T>;
+      var values = await GetJSonAsync(typeof(T).Name, field, id);
+      var result = new List<T>();
+      foreach (var val in values)
+        result.Add(await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<T>(val)));
+      return result;
     }
 
     public IEnumerable<T> Get<T>(string collection, string field, string id) where T : class, new()
     {
-      return JsonConvert.DeserializeObject<List<T>>(GetJSon(collection, field, id)) as IEnumerable<T>;
+      var values = GetJSon(collection, field, id);
+      foreach (var val in values)
+        yield return JsonConvert.DeserializeObject<T>(val);
     }
 
     public async Task<IEnumerable<T>> GetAsync<T>(string collection, string field, string id) where T : class, new()
     {
-      var result = await GetJSonAsync(collection, field, id);
-      return await JsonConvert.DeserializeObjectAsync<List<T>>(result) as IEnumerable<T>;
+      var values = await GetJSonAsync(collection, field, id);
+      var result = new List<T>();
+      foreach (var val in values)
+        result.Add(await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<T>(val)));
+      return result;
     }
 
-    public string GetJSon<T>(string field, string id) where T : class, new()
+    public IEnumerable<string> GetJSon<T>(string field, string id) where T : class, new()
     {
       return GetJSon(typeof(T).Name, field, id);
     }
 
-    public async Task<string> GetJSonAsync<T>(string field, string id) where T : class, new()
+    public async Task<IEnumerable<string>> GetJSonAsync<T>(string field, string id) where T : class, new()
     {
       return await GetJSonAsync(typeof(T).Name, field, id);
     }
 
-    public string GetJSon(string collection, string field = null, string id = null)
+    public IEnumerable<string> GetJSon(string collection, string field = null, string id = null)
     {
       return _query.Get(DataBase, collection, field, id);
     }
 
-    public async Task<string> GetJSonAsync(string collection, string field = null, string id = null)
+    public async Task<IEnumerable<string>> GetJSonAsync(string collection, string field = null, string id = null)
     {
       return await Task.Factory.StartNew(() => _query.Get(DataBase, collection, field, id));
     }
@@ -230,6 +248,7 @@ namespace DeNSo.REST
     {
       return _query.Get(DataBase, collection, id);
     }
+
     #endregion
 
     #region Count Methods

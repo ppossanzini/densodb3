@@ -44,6 +44,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\DeNSo.Core\Filters\Compressor.cs">
+      <Link>Compressor.cs</Link>
+    </Compile>
     <Compile Include="CompressEnabledWebClient.cs">
       <SubType>Component</SubType>
     </Compile>

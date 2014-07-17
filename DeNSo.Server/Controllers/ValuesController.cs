@@ -48,6 +48,23 @@ namespace DeNSo.Server.Controllers
     }
 
     [HttpPost]
+    [Route("{database}/{collection}/setbinary/{id}")]
+    public long SetBinary(string database, string collection, string id)
+    {
+      var t = Request.Content.ReadAsByteArrayAsync();
+      t.Wait();
+      var value = t.Result;
+      if (value != null && value.Length > 0)
+      {
+        LogWriter.LogInformation("Received command", LogEntryType.Information);
+        var es = StoreManager.GetEventStore(database);
+        var cmd = new { _action = DensoBuiltinCommands.Set, _collection = collection, _id = id };
+        return es.Enqueue(new EventCommand() { Command = JsonConvert.SerializeObject(cmd), Data = value });
+      }
+      return -1;
+    }
+
+    [HttpPost]
     [Route("{database}/{collection}/delete/{id}")]
     public long Delete(string database, string collection, string id)
     {
@@ -97,57 +114,53 @@ namespace DeNSo.Server.Controllers
     }
 
     [HttpGet]
+    [Route("{database}/{collection}/getbinary/{id}")]
+    public HttpResponseMessage GetBinary(string database, string collection, string id)
+    {
+      if (!string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(collection) && !string.IsNullOrEmpty(database))
+      {
+        var store = StoreManager.GetObjectStore(database, collection);
+        if (store != null)
+        {
+          var value = store.GetById(id);
+
+          if (value != null)
+            return new HttpResponseMessage
+            {
+              Content = new ByteArrayContent(value)
+            };
+        }
+      }
+      return new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(new byte[0]) };
+    }
+
+    [HttpGet]
     [Route("{database}/{collection}/get")]
     public IEnumerable<string> Get(string database, string collection)
     {
-      var values = StoreManager.GetObjectStore(database, collection).GetAll();
-
-      return values.Select(v =>
+      try
       {
-        if (DeNSo.Configuration.EnableDataCompression)
-          return v.Decompress();
-        else
-          return Encoding.UTF8.GetString(v);
-      });
+        return StoreManager.GetObjectStore(database, collection).GetAllKeys();
+      }
+      catch { }
+      return new string[0];
     }
 
     [HttpGet]
     [Route("{database}/{collection}/where/{field?}/{id?}")]
-    public HttpResponseMessage Search(string database, string collection, string field = null, string id = null)
+    public IEnumerable<string> Search(string database, string collection, string field = null, string id = null)
     {
       try
       {
-        StringBuilder sb = new StringBuilder();
         List<string> result = new List<string>();
-        sb.Append("[");
-
-        var values = StoreManager.GetObjectStore(database, collection).GetAll();
-        foreach (var value in values)
-          if (DeNSo.Configuration.EnableDataCompression)
-            result.Add(value.Decompress());
-          else
-            result.Add(Encoding.UTF8.GetString(value));
-
-
-        var index = 0;
-        foreach (var r in result)
-        {
-          if (index > 0) sb.Append(",");
-          index++;
-          sb.Append(r);
-
-        }
-        sb.Append("]");
-        return new HttpResponseMessage
-        {
-          Content = new StringContent(sb.ToString(), System.Text.Encoding.UTF8, "application/json")
-        };
+        var values = StoreManager.GetObjectStore(database, collection).GetAllKeys();
+        return values;
       }
       catch (Exception ex)
       {
         Debug.WriteLine(ex.Message);
       }
-      return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("{}", System.Text.Encoding.UTF8, "application/json") };
+      return new string[0];
     }
 
     [HttpGet]
