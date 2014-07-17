@@ -32,6 +32,13 @@ namespace DeNSo.REST.CQRS
       return result;
     }
 
+    public long Set(string database, string collection, string id, byte[] values)
+    {
+      long result = -1;
+      _client.UploadData(string.Format("rest/{0}/{1}/setbinary/{2}", database, collection, id), "POST", values);
+      return result;
+    }
+
     public long Delete(string database, string collection, string id)
     {
       long result = -1;

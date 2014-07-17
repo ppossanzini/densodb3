@@ -10,6 +10,7 @@ using DeNSo.Exceptions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace DeNSo.REST
 {
@@ -25,6 +26,7 @@ namespace DeNSo.REST
 
     public static string DefaultDataBase { get; set; }
     public static string DefaultRestServerUri { get; set; }
+    public static JsonSerializer _serializer = new JsonSerializer();
 
     public static RestSession New
     {
@@ -78,7 +80,13 @@ namespace DeNSo.REST
             idval = Guid.NewGuid().ToString();
             pi.SetValue(entity, idval);
           }
-          return new EventCommandStatus() { Value = _command.Set(DataBase, collection, idval, JsonConvert.SerializeObject(entity)) };
+
+          var ms = new MemoryStream();
+          using (var sw = new StreamWriter(ms.GetCompressorStream()))
+          using (var jtw = new JsonTextWriter(sw))
+            _serializer.Serialize(jtw, entity);
+
+          return new EventCommandStatus() { Value = _command.Set(DataBase, collection, idval, ms.ToArray()) };
         }
         return EventCommandStatus.InvalidStatus;
       });
@@ -166,81 +174,81 @@ namespace DeNSo.REST
     public IEnumerable<T> Get<T>() where T : class, new()
     {
       var result = new List<T>();
-      var values = GetJSon(typeof(T).Name);
+      var values = GetJSonStream(typeof(T).Name);
       foreach (var val in values)
-        result.Add(JsonConvert.DeserializeObject<T>(val));
+        result.Add(_serializer.Deserialize<T>(new JsonTextReader(new StreamReader(val))));
       return result;
     }
 
     public async Task<IEnumerable<T>> GetAsync<T>() where T : class, new()
     {
-      var values = await GetJSonAsync(typeof(T).Name);
+      var values = await GetJSonStreamAsync(typeof(T).Name);
 
       var result = new List<T>();
       foreach (var val in values)
-        result.Add(await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<T>(val)));
+        result.Add(await Task.Factory.StartNew(() => _serializer.Deserialize<T>(new JsonTextReader(new StreamReader(val)))));
 
       return result;
     }
 
     public IEnumerable<T> Get<T>(string field, string id) where T : class, new()
     {
-      var values = GetJSon(typeof(T).Name, field, id);
+      var values = GetJSonStream(typeof(T).Name, field, id);
       //var result = new List<T>();
       foreach (var val in values)
-        yield return JsonConvert.DeserializeObject<T>(val);
+        yield return _serializer.Deserialize<T>(new JsonTextReader(new StreamReader(val)));
     }
 
     public async Task<IEnumerable<T>> GetAsync<T>(string field, string id) where T : class, new()
     {
-      var values = await GetJSonAsync(typeof(T).Name, field, id);
+      var values = await GetJSonStreamAsync(typeof(T).Name, field, id);
       var result = new List<T>();
       foreach (var val in values)
-        result.Add(await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<T>(val)));
+        result.Add(await Task.Factory.StartNew(() => _serializer.Deserialize<T>(new JsonTextReader(new StreamReader(val)))));
       return result;
     }
 
     public IEnumerable<T> Get<T>(string collection, string field, string id) where T : class, new()
     {
-      var values = GetJSon(collection, field, id);
+      var values = GetJSonStream(collection, field, id);
       foreach (var val in values)
-        yield return JsonConvert.DeserializeObject<T>(val);
+        yield return _serializer.Deserialize<T>(new JsonTextReader(new StreamReader(val)));
     }
 
     public async Task<IEnumerable<T>> GetAsync<T>(string collection, string field, string id) where T : class, new()
     {
-      var values = await GetJSonAsync(collection, field, id);
+      var values = await GetJSonStreamAsync(collection, field, id);
       var result = new List<T>();
       foreach (var val in values)
-        result.Add(await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<T>(val)));
+        result.Add(await Task.Factory.StartNew(() => _serializer.Deserialize<T>(new JsonTextReader(new StreamReader(val)))));
       return result;
     }
 
-    public IEnumerable<string> GetJSon<T>(string field, string id) where T : class, new()
+    public IEnumerable<Stream> GetJSon<T>(string field, string id) where T : class, new()
     {
-      return GetJSon(typeof(T).Name, field, id);
+      return GetJSonStream(typeof(T).Name, field, id);
     }
 
-    public async Task<IEnumerable<string>> GetJSonAsync<T>(string field, string id) where T : class, new()
+    public async Task<IEnumerable<Stream>> GetJSonAsync<T>(string field, string id) where T : class, new()
     {
-      return await GetJSonAsync(typeof(T).Name, field, id);
+      return await GetJSonStreamAsync(typeof(T).Name, field, id);
     }
 
-    public IEnumerable<string> GetJSon(string collection, string field = null, string id = null)
+    public IEnumerable<Stream> GetJSonStream(string collection, string field = null, string id = null)
     {
       return _query.Get(DataBase, collection, field, id);
     }
 
-    public async Task<IEnumerable<string>> GetJSonAsync(string collection, string field = null, string id = null)
+    public async Task<IEnumerable<Stream>> GetJSonStreamAsync(string collection, string field = null, string id = null)
     {
       return await Task.Factory.StartNew(() => _query.Get(DataBase, collection, field, id));
     }
 
     public T GetById<T>(string id) where T : class, new()
     {
-      var result = _query.Get(DataBase, typeof(T).Name, id);
+      var result = _query.GetStream(DataBase, typeof(T).Name, id);
       if (result != null)
-        return JsonConvert.DeserializeObject<T>(result);
+        return _serializer.Deserialize<T>(new JsonTextReader(new StreamReader(result)));
       return default(T);
     }
 

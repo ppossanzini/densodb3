@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
@@ -33,7 +34,15 @@ namespace DeNSo.REST.CQRS
       return null;
     }
 
-    public IEnumerable<string> GetAll(string database, string collection)
+    public Stream GetStream(string database, string collection, string objectid)
+    {
+      var result = _client.DownloadData(string.Format("rest/{0}/{1}/getbinary/{2}", database, collection, objectid));
+      if (result != null && result.Length > 0)
+        return result.DecompressToStream();
+      return null;
+    }
+
+    public IEnumerable<Stream> GetAll(string database, string collection)
     {
       var kvalues = _client.DownloadString(string.Format("rest/{0}/{1}/get", database, collection));
       var keys = JsonConvert.DeserializeObject<List<string>>(kvalues);
@@ -41,11 +50,11 @@ namespace DeNSo.REST.CQRS
 
       foreach (var k in keys)
       {
-        yield return Get(database, collection, k);
+        yield return GetStream(database, collection, k);
       }
     }
 
-    public IEnumerable<string> Get(string database, string collection, string field, string id)
+    public IEnumerable<Stream> Get(string database, string collection, string field, string id)
     {
       if (string.IsNullOrEmpty(field) || string.IsNullOrEmpty(id))
         foreach (var val in GetAll(database, collection))
@@ -57,7 +66,7 @@ namespace DeNSo.REST.CQRS
 
         foreach (var k in keys)
         {
-          yield return Get(database, collection, k);
+          yield return GetStream(database, collection, k);
         }
       }
     }

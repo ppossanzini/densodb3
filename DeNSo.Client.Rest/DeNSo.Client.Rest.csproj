@@ -44,12 +44,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\DeNSo.Core\Filters\Compressor.cs">
-      <Link>Compressor.cs</Link>
-    </Compile>
     <Compile Include="CompressEnabledWebClient.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Compressor.cs" />
     <Compile Include="CQRS\Command.cs" />
     <Compile Include="CQRS\Query.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
