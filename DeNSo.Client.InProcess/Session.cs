@@ -221,7 +221,6 @@ namespace DeNSo
 
     #region Get Methods
 
-
     public IEnumerable<T> Get<T>() where T : class, new()
     {
       foreach (var item in GetJSonStream(typeof(T).Name))
@@ -236,47 +235,64 @@ namespace DeNSo
 
     public IEnumerable<T> Get<T>(Expression<Func<T, bool>> filter = null) where T : class, new()
     {
-      var qt = new QueryTranslator<T>();
-      var tfilter = qt.Translate(filter) as Expression<Func<JObject, bool>>;
+      Func<T, bool> cfilter = null;
+      if (filter != null) cfilter = filter.Compile();
 
-      foreach (var item in GetJSonStream(typeof(T).Name, tfilter))
-        yield return _serializer.Deserialize<T>(new JsonTextReader(new StreamReader(item)));
+      foreach (var item in GetJSonStream(typeof(T).Name))
+      {
+        var result = _serializer.Deserialize<T>(new JsonTextReader(new StreamReader(item)));
+        if (cfilter == null || cfilter(result))
+          yield return result;
+      }
     }
 
     public IEnumerable<T> Get<T>(Expression<Func<T, bool>> filter = null, params JsonConverter[] converters) where T : class, new()
     {
-      var qt = new QueryTranslator<T>();
-      var tfilter = qt.Translate(filter) as Expression<Func<JObject, bool>>;
+      Func<T, bool> cfilter = null;
+      if (filter != null) cfilter = filter.Compile();
 
       var ser = new JsonSerializer();
       if (converters != null)
         foreach (var c in converters)
           ser.Converters.Add(c);
 
-      foreach (var item in GetJSonStream(typeof(T).Name, tfilter))
-        yield return ser.Deserialize<T>(new JsonTextReader(new StreamReader(item)));
+      foreach (var item in GetJSonStream(typeof(T).Name))
+      {
+        var result = ser.Deserialize<T>(new JsonTextReader(new StreamReader(item)));
+        if (cfilter == null || cfilter(result))
+          yield return result;
+      }
     }
 
     public IEnumerable<T> Get<T>(string collection, Expression<Func<T, bool>> filter = null) where T : class, new()
     {
-      var qt = new QueryTranslator<T>();
-      var tfilter = qt.Translate(filter) as Expression<Func<JObject, bool>>;
-      foreach (var item in GetJSonStream(collection, tfilter))
-        yield return _serializer.Deserialize<T>(new JsonTextReader(new StreamReader(item)));
+      Func<T, bool> cfilter = null;
+      if (filter != null) cfilter = filter.Compile();
+
+      foreach (var item in GetJSonStream(collection))
+      {
+        var result = _serializer.Deserialize<T>(new JsonTextReader(new StreamReader(item)));
+        if (cfilter == null || cfilter(result))
+          yield return result;
+      }
     }
 
     public IEnumerable<T> Get<T>(string collection, Expression<Func<T, bool>> filter = null, params JsonConverter[] converters) where T : class, new()
     {
-      var qt = new QueryTranslator<T>();
-      var tfilter = qt.Translate(filter) as Expression<Func<JObject, bool>>;
+      Func<T, bool> cfilter = null;
+      if (filter != null) cfilter = filter.Compile();
 
       var s = new JsonSerializer();
       if (converters != null)
         foreach (var c in converters)
           s.Converters.Add(c);
 
-      foreach (var item in GetJSonStream(collection, tfilter))
-        yield return s.Deserialize<T>(new JsonTextReader(new StreamReader(item)));
+      foreach (var item in GetJSonStream(collection))
+      {
+        var result = s.Deserialize<T>(new JsonTextReader(new StreamReader(item)));
+        if (cfilter == null || cfilter(result))
+          yield return result;
+      }
     }
 
     public IEnumerable<Stream> GetJSonStream<T>(Expression<Func<JObject, bool>> filter = null) where T : class, new()
