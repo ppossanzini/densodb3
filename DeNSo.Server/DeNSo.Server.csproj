@@ -151,8 +151,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Areas\HelpPage\HelpPage.css" />
-    <Content Include="Extensions\DeNSo.OperationsLog.dll" />
-    <Content Include="Extensions\DeNSo.OperationsLog.pdb" />
     <Content Include="Extensions\Placeholder.txt" />
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />

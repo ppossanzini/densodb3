@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -19,6 +20,7 @@ namespace DeNSo
   {
     private Command _command = new Command();
     private Query _query = new Query();
+    public static JsonSerializer _serializer = new JsonSerializer();
 
     private ManualResetEvent _waiting = new ManualResetEvent(false);
     private long _waitingfor = 0;
@@ -96,33 +98,24 @@ namespace DeNSo
     #endregion
 
     #region Set Methods
+
+    public Task<EventCommandStatus> SetAsync<T>(T entity) where T : class
+    {
+      return Task.Factory.StartNew<EventCommandStatus>(() => Set<T>(typeof(T).Name, entity));
+    }
+
     public EventCommandStatus Set<T>(T entity) where T : class
     {
-      //var t = Task.Factory.StartNew<EventCommandStatus>(() =>
-      //{
-      var enttype = typeof(T);
-      var pi = enttype.GetProperty(DocumentMetadata.IdPropertyName);
-      if (pi != null)
-      {
-        var idval = (string)pi.GetValue(entity, null);
-        if (string.IsNullOrEmpty(idval))
-        {
-          idval = Guid.NewGuid().ToString();
-          pi.SetValue(entity, idval);
-        }
-        var cmd = new { _action = DensoBuiltinCommands.Set, _collection = typeof(T).Name, _id = idval };
-        return EventCommandStatus.Create(_command.Execute(DataBase, JsonConvert.SerializeObject(cmd), JsonConvert.SerializeObject(entity)), this);
-      }
-      return EventCommandStatus.InvalidStatus;
-      //});
-      //t.Wait();
-      //return t.Result;
+      return Set<T>(typeof(T).Name, entity);
+    }
+
+    public Task<EventCommandStatus> SetAsync<T>(string collection, T entity) where T : class
+    {
+      return Task.Factory.StartNew(() => Set<T>(collection, entity));
     }
 
     public EventCommandStatus Set<T>(string collection, T entity) where T : class
     {
-      //var t = Task.Factory.StartNew(() =>
-      //{
       var enttype = typeof(T);
       var pi = enttype.GetProperty(DocumentMetadata.IdPropertyName);
       if (pi != null)
@@ -134,38 +127,45 @@ namespace DeNSo
           pi.SetValue(entity, idval);
         }
 
+        var ms = new MemoryStream();
+        using (var sw = new StreamWriter(ms.GetCompressorStream()))
+        using (var jtw = new JsonTextWriter(sw))
+          _serializer.Serialize(jtw, entity);
+
         var cmd = new { _action = DensoBuiltinCommands.Set, _collection = collection };
-        return EventCommandStatus.Create(_command.Execute(DataBase, JsonConvert.SerializeObject(cmd), JsonConvert.SerializeObject(entity)), this);
+        return EventCommandStatus.Create(_command.Execute(DataBase, JsonConvert.SerializeObject(cmd), ms.ToArray()), this);
       }
       return EventCommandStatus.InvalidStatus;
-      //});
-      //t.Wait();
-      //return t.Result;
+    }
+
+    public Task<EventCommandStatus> SetAllAsync<T>(IEnumerable<T> entity) where T : class
+    {
+      return Task.Factory.StartNew(() => SetAll(entity));
     }
 
     public EventCommandStatus SetAll<T>(IEnumerable<T> entity) where T : class
     {
-      //List<Task<EventCommandStatus>> tasks = new List<Task<EventCommandStatus>>();
+      var max = 0L;
       foreach (var item in entity)
       {
-        Set<T>(item);
-        //tasks.Add(Task.Factory.StartNew(() => Set<T>(item)));
+        max = Math.Max(Set<T>(item).Value, max);
       }
+      return new EventCommandStatus() { Value = max };
+    }
 
-      //Task.WaitAll(tasks.ToArray());
-      //return new EventCommandStatus() { Value = tasks.Select(t => t.Result.Value).Max() };
-      return EventCommandStatus.InvalidStatus;
+    public Task<EventCommandStatus> SetAllAsync<T>(string collection, IEnumerable<T> entity) where T : class
+    {
+      return Task.Factory.StartNew(() => SetAll(collection, entity));
     }
 
     public EventCommandStatus SetAll<T>(string collection, IEnumerable<T> entity) where T : class
     {
-      List<Task<EventCommandStatus>> tasks = new List<Task<EventCommandStatus>>();
+      var max = 0L;
       foreach (var item in entity)
       {
-        tasks.Add(Task.Factory.StartNew(() => Set<T>(collection, item)));
+        max = Math.Max(Set<T>(collection, item), max);
       }
-      Task.WaitAll(tasks.ToArray());
-      return new EventCommandStatus() { Value = tasks.Select(t => t.Result.Value).Max() };
+      return new EventCommandStatus() { Value = max };
     }
 
     #endregion
@@ -220,72 +220,73 @@ namespace DeNSo
     #endregion
 
     #region Get Methods
-    //public IEnumerable<T> Get<T>(Expression<Func<T, bool>> filter = null) where T : class, new()
-    //{
-    //  return this.Get(typeof(T).Name, filter);
-    //}
-    //public IEnumerable<T> Get<T>(string collection, Expression<Func<T, bool>> filter = null) where T : class, new()
-    //{
-    //  Generic2BsonLambdaConverter visitor = new Generic2BsonLambdaConverter();
-    //  var expr = visitor.Visit(filter) as Expression<Func<BSonDoc, bool>>;
-    //  return Get(collection, expr != null ? expr.Compile() : null).Select(doc => doc.FromBSon<T>()).AsEnumerable();
-    //}
+
 
     public IEnumerable<T> Get<T>() where T : class, new()
     {
-      return GetJSon(typeof(T).Name).AsParallel().Select(doc => JsonConvert.DeserializeObject<T>(doc)).AsEnumerable();
+      foreach (var item in GetJSonStream(typeof(T).Name))
+        yield return _serializer.Deserialize<T>(new JsonTextReader(new StreamReader(item)));
     }
 
     public IEnumerable<T> Get<T>(params JsonConverter[] converters) where T : class, new()
     {
-      return GetJSon(typeof(T).Name).AsParallel().Select(doc => JsonConvert.DeserializeObject<T>(doc, converters)).AsEnumerable();
-    }
-
-    public async Task<IEnumerable<T>> GetAsync<T>(params JsonConverter[] converters) where T : class, new()
-    {
-      return (await GetJSonAsync(typeof(T).Name)).AsParallel().Select(doc => JsonConvert.DeserializeObject<T>(doc, converters)).AsEnumerable();
+      foreach (var item in GetJSonStream(typeof(T).Name))
+        yield return _serializer.Deserialize<T>(new JsonTextReader(new StreamReader(item)));
     }
 
     public IEnumerable<T> Get<T>(Expression<Func<T, bool>> filter = null) where T : class, new()
     {
       var qt = new QueryTranslator<T>();
       var tfilter = qt.Translate(filter) as Expression<Func<JObject, bool>>;
-      return GetJSon(typeof(T).Name, tfilter).AsParallel().Select(doc => JsonConvert.DeserializeObject<T>(doc)).AsEnumerable();
+
+      foreach (var item in GetJSonStream(typeof(T).Name, tfilter))
+        yield return _serializer.Deserialize<T>(new JsonTextReader(new StreamReader(item)));
     }
 
     public IEnumerable<T> Get<T>(Expression<Func<T, bool>> filter = null, params JsonConverter[] converters) where T : class, new()
     {
       var qt = new QueryTranslator<T>();
       var tfilter = qt.Translate(filter) as Expression<Func<JObject, bool>>;
-      return GetJSon(typeof(T).Name, tfilter).AsParallel().Select(doc => JsonConvert.DeserializeObject<T>(doc, converters)).AsEnumerable();
-    }
 
-    public async Task<IEnumerable<T>> GetAsync<T>(Expression<Func<T, bool>> filter = null, params JsonConverter[] converters) where T : class, new()
-    {
-      var qt = new QueryTranslator<T>();
-      var tfilter = qt.Translate(filter) as Expression<Func<JObject, bool>>;
-      return (await GetJSonAsync(typeof(T).Name, tfilter)).AsParallel().Select(doc => JsonConvert.DeserializeObject<T>(doc, converters)).AsEnumerable();
+      var ser = new JsonSerializer();
+      if (converters != null)
+        foreach (var c in converters)
+          ser.Converters.Add(c);
+
+      foreach (var item in GetJSonStream(typeof(T).Name, tfilter))
+        yield return ser.Deserialize<T>(new JsonTextReader(new StreamReader(item)));
     }
 
     public IEnumerable<T> Get<T>(string collection, Expression<Func<T, bool>> filter = null) where T : class, new()
     {
       var qt = new QueryTranslator<T>();
       var tfilter = qt.Translate(filter) as Expression<Func<JObject, bool>>;
-      return GetJSon(collection, tfilter).AsParallel().Select(doc => JsonConvert.DeserializeObject<T>(doc)).AsEnumerable();
+      foreach (var item in GetJSonStream(collection, tfilter))
+        yield return _serializer.Deserialize<T>(new JsonTextReader(new StreamReader(item)));
     }
 
     public IEnumerable<T> Get<T>(string collection, Expression<Func<T, bool>> filter = null, params JsonConverter[] converters) where T : class, new()
     {
       var qt = new QueryTranslator<T>();
       var tfilter = qt.Translate(filter) as Expression<Func<JObject, bool>>;
-      return GetJSon(collection, tfilter).AsParallel().Select(doc => JsonConvert.DeserializeObject<T>(doc, converters)).AsEnumerable();
+
+      var s = new JsonSerializer();
+      if (converters != null)
+        foreach (var c in converters)
+          s.Converters.Add(c);
+
+      foreach (var item in GetJSonStream(collection, tfilter))
+        yield return s.Deserialize<T>(new JsonTextReader(new StreamReader(item)));
     }
 
-    public async Task<IEnumerable<T>> GetAsync<T>(string collection, Expression<Func<T, bool>> filter = null, params JsonConverter[] converters) where T : class, new()
+    public IEnumerable<Stream> GetJSonStream<T>(Expression<Func<JObject, bool>> filter = null) where T : class, new()
     {
-      var qt = new QueryTranslator<T>();
-      var tfilter = qt.Translate(filter) as Expression<Func<JObject, bool>>;
-      return (await GetJSonAsync(collection, tfilter)).AsParallel().Select(doc => JsonConvert.DeserializeObject<T>(doc, converters)).AsEnumerable();
+      return GetJSonStream(typeof(T).Name, filter).AsEnumerable();
+    }
+
+    public IEnumerable<Stream> GetJSonStream(string collection, Expression<Func<JObject, bool>> filter = null)
+    {
+      return _query.GetAsStream(DataBase, collection, filter != null ? filter.Compile() : (Func<JObject, bool>)null);
     }
 
     public IEnumerable<string> GetJSon<T>(Expression<Func<JObject, bool>> filter = null) where T : class, new()
@@ -293,43 +294,38 @@ namespace DeNSo
       return GetJSon(typeof(T).Name, filter).AsEnumerable();
     }
 
-    public async Task<IEnumerable<string>> GetJSonAsync<T>(Expression<Func<JObject, bool>> filter = null) where T : class, new()
-    {
-      return await GetJSonAsync(typeof(T).Name, filter);
-    }
-
     public IEnumerable<string> GetJSon(string collection, Expression<Func<JObject, bool>> filter = null)
     {
-
       return _query.GetAsStrings(DataBase, collection, filter != null ? filter.Compile() : (Func<JObject, bool>)null);
-    }
-
-    public async Task<IEnumerable<string>> GetJSonAsync(string collection, Expression<Func<JObject, bool>> filter = null)
-    {
-      return await Task.Factory.StartNew(() => _query.GetAsStrings(DataBase, collection, filter != null ? filter.Compile() : (Func<JObject, bool>)null));
     }
 
     public T GetById<T>(string id, params JsonConverter[] converters) where T : class, new()
     {
-      var result = _query.GetAsString(DataBase, typeof(T).Name, id);
+      var result = _query.GetAsStream(DataBase, typeof(T).Name, id);
       if (result != null)
-        return JsonConvert.DeserializeObject<T>(result, converters);
+      {
+        var ser = new JsonSerializer();
+        if (converters != null)
+          foreach (var p in converters)
+            ser.Converters.Add(p);
+        return ser.Deserialize<T>(new JsonTextReader(new StreamReader(result)));
+      }
       return default(T);
     }
 
     public T GetById<T>(string id) where T : class, new()
     {
-      var result = _query.GetAsString(DataBase, typeof(T).Name, id);
+      var result = _query.GetAsStream(DataBase, typeof(T).Name, id);
       if (result != null)
-        return JsonConvert.DeserializeObject<T>(result);
+        return _serializer.Deserialize<T>(new JsonTextReader(new StreamReader(result)));
       return default(T);
     }
 
     public T GetById<T>(string collection, string id, params JsonConverter[] converters) where T : class, new()
     {
-      var result = _query.GetAsString(DataBase, collection, id);
+      var result = _query.GetAsStream(DataBase, collection, id);
       if (result != null)
-        return JsonConvert.DeserializeObject<T>(result, converters);
+        return _serializer.Deserialize<T>(new JsonTextReader(new StreamReader(result)));
       return default(T);
     }
 

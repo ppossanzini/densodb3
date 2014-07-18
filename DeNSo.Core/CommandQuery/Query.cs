@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -31,6 +32,14 @@ namespace DeNSo
       return result;
     }
 
+    public Stream GetAsStream(string database, string collection, string objectid)
+    {
+      byte[] data = Get(database, collection, objectid);
+      if (Configuration.EnableDataCompression)
+        return data.DecompressToStream();
+      return new MemoryStream(data);
+    }
+
     public IEnumerable<byte[]> Get(string database, string collection, Func<JObject, bool> filter)
     {
       //if (filter != null)
@@ -52,6 +61,20 @@ namespace DeNSo
           result.Add(Encoding.UTF8.GetString(d));
       }
       return result.AsEnumerable();
+    }
+
+    public IEnumerable<Stream> GetAsStream(string database, string collection, Func<JObject, bool> filter)
+    {
+      //if (filter != null)
+      //  return StoreManager.GetObjectStore(database, collection).Where(filter);
+      IEnumerable<byte[]> data = Get(database, collection, filter);
+      foreach (var d in data)
+      {
+        if (Configuration.EnableDataCompression)
+          yield return d.DecompressToStream();
+        else
+          yield return new MemoryStream(d);
+      }
     }
 
     public int Count(string database, string collection)

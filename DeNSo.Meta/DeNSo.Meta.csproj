@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>DeNSo</RootNamespace>
-    <AssemblyName>DeNSo.Meta</AssemblyName>
+    <AssemblyName>DeNSo.v3.Meta</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
@@ -56,6 +56,7 @@
     <Compile Include="Attributes\CommandAttribute.cs" />
     <Compile Include="BuiltinCommands.cs" />
     <Compile Include="CommandKeyword.cs" />
+    <Compile Include="Compressor.cs" />
     <Compile Include="DocumentMetadata.cs" />
     <Compile Include="EventCommandStatus.cs" />
     <Compile Include="Exceptions\DocumentWithoutIdException.cs" />

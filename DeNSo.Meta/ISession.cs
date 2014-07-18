@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 namespace DeNSo
 {
   public interface ISession
@@ -29,6 +30,9 @@ namespace DeNSo
 
     System.Collections.Generic.IEnumerable<string> GetJSon(string collection, System.Linq.Expressions.Expression<Func<Newtonsoft.Json.Linq.JObject, bool>> jsonfilter = null);
     System.Collections.Generic.IEnumerable<string> GetJSon<T>(System.Linq.Expressions.Expression<Func<Newtonsoft.Json.Linq.JObject, bool>> jsonfilter = null) where T : class, new();
+
+    System.Collections.Generic.IEnumerable<Stream> GetJSonStream(string collection, System.Linq.Expressions.Expression<Func<Newtonsoft.Json.Linq.JObject, bool>> jsonfilter = null);
+    System.Collections.Generic.IEnumerable<Stream> GetJSonStream<T>(System.Linq.Expressions.Expression<Func<Newtonsoft.Json.Linq.JObject, bool>> jsonfilter = null) where T : class, new();
 
     EventCommandStatus Set<T>(string collection, T entity) where T : class;
     EventCommandStatus Set<T>(T entity) where T : class;
