@@ -66,6 +66,7 @@
     <Compile Include="EventHandlers\SetHandler.cs" />
     <Compile Include="EventStore.cs" />
     <Compile Include="Filters\BloomFilter.cs" />
+    <Compile Include="Indexing\Index.cs" />
     <Compile Include="LogWriter.cs" />
     <Compile Include="ObjectStore.cs" />
     <Compile Include="ObjectStoreWrapper.cs" />

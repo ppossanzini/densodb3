@@ -5,9 +5,9 @@ namespace DeNSo
   public interface ISession
   {
     int Count(string collection);
-    int Count(string collection, System.Linq.Expressions.Expression<Func<Newtonsoft.Json.Linq.JObject, bool>> filter);
+    //int Count(string collection, Func<Newtonsoft.Json.Linq.JObject, bool> filter);
     int Count<T>() where T : class, new();
-    int Count<T>(System.Linq.Expressions.Expression<Func<T, bool>> filter) where T : class, new();
+    //int Count<T>(Func<T, bool> filter) where T : class, new();
 
     string DataBase { get; set; }
 
@@ -25,14 +25,14 @@ namespace DeNSo
     T GetById<T>(string id) where T : class, new();
 
     System.Collections.Generic.IEnumerable<T> Get<T>() where T : class, new();
-    System.Collections.Generic.IEnumerable<T> Get<T>(System.Linq.Expressions.Expression<Func<T, bool>> entityfilter = null) where T : class, new();
-    System.Collections.Generic.IEnumerable<T> Get<T>(string collection, System.Linq.Expressions.Expression<Func<T, bool>> entityfilter = null) where T : class, new();
+    System.Collections.Generic.IEnumerable<T> Get<T>(Func<T, bool> entityfilter = null) where T : class, new();
+    System.Collections.Generic.IEnumerable<T> Get<T>(string collection, Func<T, bool> entityfilter = null) where T : class, new();
 
-    System.Collections.Generic.IEnumerable<string> GetJSon(string collection, System.Linq.Expressions.Expression<Func<Newtonsoft.Json.Linq.JObject, bool>> jsonfilter = null);
-    System.Collections.Generic.IEnumerable<string> GetJSon<T>(System.Linq.Expressions.Expression<Func<Newtonsoft.Json.Linq.JObject, bool>> jsonfilter = null) where T : class, new();
+    System.Collections.Generic.IEnumerable<string> GetJSon(string collection, Func<Newtonsoft.Json.Linq.JObject, bool> jsonfilter = null);
+    System.Collections.Generic.IEnumerable<string> GetJSon<T>(Func<Newtonsoft.Json.Linq.JObject, bool> jsonfilter = null) where T : class, new();
 
-    System.Collections.Generic.IEnumerable<Stream> GetJSonStream(string collection, System.Linq.Expressions.Expression<Func<Newtonsoft.Json.Linq.JObject, bool>> jsonfilter = null);
-    System.Collections.Generic.IEnumerable<Stream> GetJSonStream<T>(System.Linq.Expressions.Expression<Func<Newtonsoft.Json.Linq.JObject, bool>> jsonfilter = null) where T : class, new();
+    System.Collections.Generic.IEnumerable<Stream> GetStream(string collection, Func<Newtonsoft.Json.Linq.JObject, bool> filter = null);
+    System.Collections.Generic.IEnumerable<Stream> GetJSonStream<T>(Func<Newtonsoft.Json.Linq.JObject, bool> jsonfilter = null) where T : class, new();
 
     EventCommandStatus Set<T>(string collection, T entity) where T : class;
     EventCommandStatus Set<T>(T entity) where T : class;

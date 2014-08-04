@@ -13,6 +13,8 @@ namespace DeNSo
 {
   public static class Configuration
   {
+    public const string Version = "3.0";
+
     public static string[] BasePath { get; set; }
     public static string[] IndexBasePath { get; set; }
     public static TimeSpan SaveInterval { get; set; }
@@ -32,9 +34,6 @@ namespace DeNSo
 
     static Configuration()
     {
-#if WINDOWS_PHONE || NETFX_CORE
-      BasePath = "DeNSo";
-#else
       BasePath = new string[] { "DeNSo" };
       try
       {
@@ -44,7 +43,6 @@ namespace DeNSo
       {
 
       }
-#endif
       IndexBasePath = BasePath;
 
       SaveInterval = new TimeSpan(0, 5, 0);
@@ -53,7 +51,7 @@ namespace DeNSo
       DictionarySplitSize = 20000;
       EnableJournaling = true;
       EnsureAtomicWrites = false;
-      EnableDataCompression = true;
+      EnableDataCompression = false;
     }
 
     public static string GetBasePath()

@@ -1,34 +1,39 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
-    <metadata>
-        <id>densodb.v3</id>
-        <version>3.0.2</version>
-        <title>densodb v.3 - nosql database</title>
-        <authors>Teamdev</authors>
-        <owners>teamdev.it</owners>
-        <projectUrl>http://densodb.net</projectUrl>
-        <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>DensoDB is a new NoSQL document database. Written for .Net environment in c# language.
-It run in-process so you does not need any configuration or installation.</description>
-        <copyright>Teamdev srl</copyright>
-        <tags>keyvalue, store, nosql, database, inprocess, c#</tags>
-        <dependencies>
-            <dependency id="Newtonsoft.Json" version="6.0.3" />
-            <dependency id="C5" version="2.2.4881.16939" />
-        </dependencies>
-        <frameworkAssemblies>
-            <frameworkAssembly assemblyName="Microsoft.CSharp" targetFramework="" />
-            <frameworkAssembly assemblyName="System" targetFramework="" />
-            <frameworkAssembly assemblyName="System.ComponentModel.Composition" targetFramework="" />
-            <frameworkAssembly assemblyName="System.Core" targetFramework="" />
-            <frameworkAssembly assemblyName="System.Data" targetFramework="" />
-            <frameworkAssembly assemblyName="System.Xml" targetFramework="" />
-            <frameworkAssembly assemblyName="System.Xml.Linq" targetFramework="" />
-        </frameworkAssemblies>
-    </metadata>
-    <files>
-        <file src="DeNSo.Client.InProcess\bin\Release\DeNSo.v3.Client.InProcess.dll" target="lib\net45\DeNSo.v3.Client.InProcess.dll" />
-        <file src="DeNSo.Client.InProcess\bin\Release\DeNSo.v3.Core.dll" target="lib\net45\DeNSo.v3.Core.dll" />
-        <file src="DeNSo.Client.InProcess\bin\Release\DeNSo.v3.Meta.dll" target="lib\net45\DeNSo.v3.Meta.dll" />
-    </files>
+  <metadata>
+    <id>densodb.v3</id>
+    <version>3.0.7</version>
+    <title>densodb v.3 - nosql database</title>
+    <authors>Teamdev</authors>
+    <owners>teamdev.it</owners>
+    <projectUrl>http://densodb.net</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>
+      DensoDB is a new NoSQL document database. Written for .Net environment in c# language.
+      It run in-process so you does not need any configuration or installation.
+    </description>
+    <copyright>Teamdev srl</copyright>
+    <tags>keyvalue, store, nosql, database, inprocess, c#</tags>
+    <dependencies>
+      <dependency id="Newtonsoft.Json" version="6.0.3" />
+      <dependency id="C5" version="2.2.4881.16939" />
+    </dependencies>
+    <frameworkAssemblies>
+      <frameworkAssembly assemblyName="Microsoft.CSharp" targetFramework="" />
+      <frameworkAssembly assemblyName="System" targetFramework="" />
+      <frameworkAssembly assemblyName="System.ComponentModel.Composition" targetFramework="" />
+      <frameworkAssembly assemblyName="System.Core" targetFramework="" />
+      <frameworkAssembly assemblyName="System.Data" targetFramework="" />
+      <frameworkAssembly assemblyName="System.Xml" targetFramework="" />
+      <frameworkAssembly assemblyName="System.Xml.Linq" targetFramework="" />
+    </frameworkAssemblies>
+  </metadata>
+  <files>
+    <file src="DeNSo.Client.InProcess\bin\Debug\DeNSo.v3.Client.InProcess.dll" target="lib\net45\DeNSo.v3.Client.InProcess.dll" />
+    <file src="DeNSo.Client.InProcess\bin\Debug\DeNSo.v3.Client.InProcess.pdb" target="lib\net45\DeNSo.v3.Client.InProcess.pdb" />
+    <file src="DeNSo.Client.InProcess\bin\Debug\DeNSo.v3.Core.dll" target="lib\net45\DeNSo.v3.Core.dll" />
+    <file src="DeNSo.Client.InProcess\bin\Debug\DeNSo.v3.Core.pdb" target="lib\net45\DeNSo.v3.Core.pdb" />
+    <file src="DeNSo.Client.InProcess\bin\Debug\DeNSo.v3.Meta.dll" target="lib\net45\DeNSo.v3.Meta.dll" />
+    <file src="DeNSo.Client.InProcess\bin\Debug\DeNSo.v3.Meta.pdb" target="lib\net45\DeNSo.v3.Meta.pdb" />
+  </files>
 </package>

@@ -127,12 +127,15 @@ namespace DeNSo
           pi.SetValue(entity, idval);
         }
 
-        var ms = new MemoryStream();
-        using (var sw = new StreamWriter(ms.GetCompressorStream()))
+        MemoryStream ms = new MemoryStream();
+        ms = new MemoryStream();
+        using (var sw = new StreamWriter(ms))
         using (var jtw = new JsonTextWriter(sw))
           _serializer.Serialize(jtw, entity);
+        //PrepareForSerialization<T>();
+        //ProtoBuf.Serializer.Serialize(ms, entity);
 
-        var cmd = new { _action = DensoBuiltinCommands.Set, _collection = collection };
+        var cmd = new { _action = DensoBuiltinCommands.Set, _collection = collection, _id = idval };
         return EventCommandStatus.Create(_command.Execute(DataBase, JsonConvert.SerializeObject(cmd), ms.ToArray()), this);
       }
       return EventCommandStatus.InvalidStatus;
@@ -221,129 +224,161 @@ namespace DeNSo
 
     #region Get Methods
 
+    public async Task<IEnumerable<T>> GetAsync<T>() where T : class, new()
+    {
+      return await Task.Factory.StartNew(() => Get<T>());
+    }
+
     public IEnumerable<T> Get<T>() where T : class, new()
     {
-      foreach (var item in GetJSonStream(typeof(T).Name))
+      //PrepareForSerialization<T>();
+      foreach (var item in GetStream(typeof(T).Name))
+        //yield return ProtoBuf.Serializer.Deserialize<T>(item);
         yield return _serializer.Deserialize<T>(new JsonTextReader(new StreamReader(item)));
     }
 
-    public IEnumerable<T> Get<T>(params JsonConverter[] converters) where T : class, new()
+    //public IEnumerable<T> Get<T>(params JsonConverter[] converters) where T : class, new()
+    //{
+    //  foreach (var item in GetStream(typeof(T).Name))
+    //    yield return ProtoBuf.Serializer.Deserialize<T>(item);
+    //    //yield return _serializer.Deserialize<T>(new JsonTextReader(new StreamReader(item)));
+    //}
+
+    public async Task<IEnumerable<T>> GetAsync<T>(Func<T, bool> filter = null) where T : class, new()
     {
-      foreach (var item in GetJSonStream(typeof(T).Name))
-        yield return _serializer.Deserialize<T>(new JsonTextReader(new StreamReader(item)));
+      return await Task.Factory.StartNew(() => Get<T>(filter));
     }
 
-    public IEnumerable<T> Get<T>(Expression<Func<T, bool>> filter = null) where T : class, new()
+    public IEnumerable<T> Get<T>(Func<T, bool> filter = null) where T : class, new()
     {
-      Func<T, bool> cfilter = null;
-      if (filter != null) cfilter = filter.Compile();
-
-      foreach (var item in GetJSonStream(typeof(T).Name))
+      //PrepareForSerialization<T>();
+      foreach (var item in GetStream(typeof(T).Name))
       {
+        if (item == null) continue;
+        //var result = ProtoBuf.Serializer.Deserialize<T>(item);
         var result = _serializer.Deserialize<T>(new JsonTextReader(new StreamReader(item)));
-        if (cfilter == null || cfilter(result))
+        if (filter == null || filter(result))
           yield return result;
       }
     }
 
-    public IEnumerable<T> Get<T>(Expression<Func<T, bool>> filter = null, params JsonConverter[] converters) where T : class, new()
+    //public IEnumerable<T> Get<T>(Func<T, bool> filter = null, params JsonConverter[] converters) where T : class, new()
+    //{
+    //  //var ser = new JsonSerializer();
+    //  //if (converters != null)
+    //  //  foreach (var c in converters)
+    //  //    ser.Converters.Add(c);
+
+    //  foreach (var item in GetStream(typeof(T).Name))
+    //  {
+    //    var result = ProtoBuf.Serializer.Deserialize<T>(item);
+    //    //var result = ser.Deserialize<T>(new JsonTextReader(new StreamReader(item)));
+    //    if (filter == null || filter(result))
+    //      yield return result;
+    //  }
+    //}
+
+    public IEnumerable<T> Get<T>(string collection, Func<T, bool> filter = null) where T : class, new()
     {
-      Func<T, bool> cfilter = null;
-      if (filter != null) cfilter = filter.Compile();
-
-      var ser = new JsonSerializer();
-      if (converters != null)
-        foreach (var c in converters)
-          ser.Converters.Add(c);
-
-      foreach (var item in GetJSonStream(typeof(T).Name))
+      //PrepareForSerialization<T>();
+      foreach (var item in GetStream(collection))
       {
-        var result = ser.Deserialize<T>(new JsonTextReader(new StreamReader(item)));
-        if (cfilter == null || cfilter(result))
-          yield return result;
-      }
-    }
-
-    public IEnumerable<T> Get<T>(string collection, Expression<Func<T, bool>> filter = null) where T : class, new()
-    {
-      Func<T, bool> cfilter = null;
-      if (filter != null) cfilter = filter.Compile();
-
-      foreach (var item in GetJSonStream(collection))
-      {
+        //var result = ProtoBuf.Serializer.Deserialize<T>(item);
         var result = _serializer.Deserialize<T>(new JsonTextReader(new StreamReader(item)));
-        if (cfilter == null || cfilter(result))
+        if (filter == null || filter(result))
           yield return result;
       }
     }
 
-    public IEnumerable<T> Get<T>(string collection, Expression<Func<T, bool>> filter = null, params JsonConverter[] converters) where T : class, new()
+    //public IEnumerable<T> Get<T>(string collection, Func<T, bool> filter = null, params JsonConverter[] converters) where T : class, new()
+    //{
+
+    //  //var s = new JsonSerializer();
+    //  //if (converters != null)
+    //  //  foreach (var c in converters)
+    //  //    s.Converters.Add(c);
+
+    //  foreach (var item in GetStream(collection))
+    //  {
+    //    var result = ProtoBuf.Serializer.Deserialize<T>(item);
+    //    //var result = s.Deserialize<T>(new JsonTextReader(new StreamReader(item)));
+    //    if (filter == null || filter(result))
+    //      yield return result;
+    //  }
+    //}
+
+    public IEnumerable<Stream> GetJSonStream<T>(Func<JObject, bool> filter = null) where T : class, new()
     {
-      Func<T, bool> cfilter = null;
-      if (filter != null) cfilter = filter.Compile();
-
-      var s = new JsonSerializer();
-      if (converters != null)
-        foreach (var c in converters)
-          s.Converters.Add(c);
-
-      foreach (var item in GetJSonStream(collection))
-      {
-        var result = s.Deserialize<T>(new JsonTextReader(new StreamReader(item)));
-        if (cfilter == null || cfilter(result))
-          yield return result;
-      }
+      return GetStream(typeof(T).Name, filter).AsEnumerable();
     }
 
-    public IEnumerable<Stream> GetJSonStream<T>(Expression<Func<JObject, bool>> filter = null) where T : class, new()
+    public IEnumerable<Stream> GetStream(string collection, Func<JObject, bool> filter = null)
     {
-      return GetJSonStream(typeof(T).Name, filter).AsEnumerable();
+      IEnumerable<string> result;
+      //if (filter == null)
+      result = _query.GetAllKeys(DataBase, collection);
+
+      foreach (var k in result)
+        yield return _query.GetAsStream(DataBase, collection, k);
     }
 
-    public IEnumerable<Stream> GetJSonStream(string collection, Expression<Func<JObject, bool>> filter = null)
-    {
-      return _query.GetAsStream(DataBase, collection, filter != null ? filter.Compile() : (Func<JObject, bool>)null);
-    }
-
-    public IEnumerable<string> GetJSon<T>(Expression<Func<JObject, bool>> filter = null) where T : class, new()
+    public IEnumerable<string> GetJSon<T>(Func<JObject, bool> filter = null) where T : class, new()
     {
       return GetJSon(typeof(T).Name, filter).AsEnumerable();
     }
 
-    public IEnumerable<string> GetJSon(string collection, Expression<Func<JObject, bool>> filter = null)
+    public IEnumerable<string> GetJSon(string collection, Func<JObject, bool> filter = null)
     {
-      return _query.GetAsStrings(DataBase, collection, filter != null ? filter.Compile() : (Func<JObject, bool>)null);
+      IEnumerable<string> result;
+      //if (filter == null)
+      result = _query.GetAllKeys(DataBase, collection);
+
+      foreach (var k in result)
+        yield return _query.GetAsString(DataBase, collection, k);
     }
 
-    public T GetById<T>(string id, params JsonConverter[] converters) where T : class, new()
-    {
-      var result = _query.GetAsStream(DataBase, typeof(T).Name, id);
-      if (result != null)
-      {
-        var ser = new JsonSerializer();
-        if (converters != null)
-          foreach (var p in converters)
-            ser.Converters.Add(p);
-        return ser.Deserialize<T>(new JsonTextReader(new StreamReader(result)));
-      }
-      return default(T);
-    }
+    //public T GetById<T>(string id, params JsonConverter[] converters) where T : class, new()
+    //{
+    //  var result = _query.GetAsStream(DataBase, typeof(T).Name, id);
+    //  if (result != null)
+    //  {
+    //    var ser = new JsonSerializer();
+    //    if (converters != null)
+    //      foreach (var p in converters)
+    //        ser.Converters.Add(p);
+    //    return ser.Deserialize<T>(new JsonTextReader(new StreamReader(result)));
+    //  }
+    //  return default(T);
+    //}
 
     public T GetById<T>(string id) where T : class, new()
     {
+      //PrepareForSerialization<T>();
       var result = _query.GetAsStream(DataBase, typeof(T).Name, id);
       if (result != null)
+        //return ProtoBuf.Serializer.Deserialize<T>(result);
         return _serializer.Deserialize<T>(new JsonTextReader(new StreamReader(result)));
       return default(T);
     }
 
-    public T GetById<T>(string collection, string id, params JsonConverter[] converters) where T : class, new()
+    public T GetById<T>(string collection, string id) where T : class, new()
     {
+      //PrepareForSerialization<T>();
       var result = _query.GetAsStream(DataBase, collection, id);
       if (result != null)
+        //return ProtoBuf.Serializer.Deserialize<T>(result);
         return _serializer.Deserialize<T>(new JsonTextReader(new StreamReader(result)));
       return default(T);
     }
+
+    //public T GetById<T>(string collection, string id, params JsonConverter[] converters) where T : class, new()
+    //{
+    //  var result = _query.GetAsStream(DataBase, collection, id);
+    //  if (result != null)
+    //    return ProtoBuf.Serializer.Deserialize<T>(result);
+    //    //return _serializer.Deserialize<T>(new JsonTextReader(new StreamReader(result)));
+    //  return default(T);
+    //}
 
     public string GetById(string collection, string id)
     {
@@ -356,21 +391,19 @@ namespace DeNSo
     {
       return Count(typeof(T).Name);
     }
-    public int Count<T>(Expression<Func<T, bool>> filter) where T : class, new()
-    {
-      var qt = new QueryTranslator<T>();
-      var tfilter = qt.Translate(filter) as Expression<Func<JObject, bool>>;
-      return Count(typeof(T).Name, tfilter);
-    }
+    //public int Count<T>(Func<T, bool> filter) where T : class, new()
+    //{
+    //  //return Count(typeof(T).Name, filter);
+    //}
 
     public int Count(string collection)
     {
       return _query.Count(DataBase, collection);
     }
-    public int Count(string collection, Expression<Func<JObject, bool>> filter)
-    {
-      return _query.Count(DataBase, collection, filter.Compile());
-    }
+    //public int Count(string collection, Func<JObject, bool> filter)
+    //{
+    //  return _query.Count(DataBase, collection, filter.Compile());
+    //}
     //public int Count<T>(Expression<Func<T, bool>> filter) where T : class, new()
     //{
     //  Generic2BsonLambdaConverter visitor = new Generic2BsonLambdaConverter();
@@ -387,5 +420,47 @@ namespace DeNSo
     {
       StoreManager.Start();
     }
+
+    //private bool IsKnownType<T>()
+    //{
+    //  return ProtoBuf.Meta.RuntimeTypeModel.Default.CanSerialize(typeof(T));
+    //}
+
+    //private void PrepareForSerialization<T>()
+    //{
+    //  PrepareForSerialization(typeof(T));
+    //}
+
+    //private void PrepareForSerialization(Type ttype)
+    //{
+    //  var otype = ttype;
+    //  if (ttype.IsArray)
+    //  {
+    //    ttype = ttype.GetElementType();
+    //  }
+
+    //  if (!ProtoBuf.Meta.RuntimeTypeModel.Default.CanSerialize(ttype))
+    //  {
+    //    var mtype = ProtoBuf.Meta.RuntimeTypeModel.Default.Add(ttype, false);
+
+    //    int x = 1;
+    //    foreach (var p in ttype.GetProperties(System.Reflection.BindingFlags.GetProperty | System.Reflection.BindingFlags.SetProperty | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance))
+    //    {
+    //      if (p.CanRead && p.CanWrite)
+    //      {
+    //        PrepareForSerialization(p.PropertyType);
+    //        var f = mtype.AddField(x++, p.Name);
+    //        if (otype.IsArray)
+    //        {
+    //          f.AsReference = true;
+    //          //f.IsPacked = true;
+    //        }
+
+    //      }
+    //    }
+
+    //    mtype.CompileInPlace();
+    //  }
+    //}
   }
 }

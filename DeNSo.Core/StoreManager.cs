@@ -92,6 +92,7 @@ namespace DeNSo
         }
 
         _saveDBThread = new Thread(new ThreadStart(SaveDBThreadMethod));
+        _saveDBThread.Priority = ThreadPriority.AboveNormal;
         _saveDBThread.Start();
 
         _indexerThread = new Thread(new ThreadStart(CheckBloomIndexes));
@@ -107,9 +108,16 @@ namespace DeNSo
     {
       ShutDownEvent.Set();
       ShuttingDown = true;
+
+      foreach (var db in _stores.Keys)
+      {
+        var collections = GetCollections(db);
+        foreach (var coll in collections)
+          GetObjectStore(db, coll).SaveCollection();
+      }
+
       if (_saveDBThread != null)
         _saveDBThread.Join((int)new TimeSpan(0, 5, 0).TotalMilliseconds);
-
 
       Monitor.Enter(_eventStore);
       _eventStore.Clear();
@@ -159,7 +167,8 @@ namespace DeNSo
         }
         Monitor.Exit(_eventStore);
       }
-      catch (Exception e){
+      catch (Exception e)
+      {
         LogWriter.LogException(e);
       }
     }
@@ -203,15 +212,14 @@ namespace DeNSo
 
     internal static void SaveDataBase(string databasename)
     {
-      var collections = GetCollections(databasename);
-      foreach (var coll in collections)
-        GetObjectStore(databasename, coll).SaveCollection();
-
       var es = GetEventStore(databasename);
       foreach (var path in Configuration.BasePath)
         using (var fs = File.Create(Path.Combine(Path.Combine(path, databasename), "denso.trn")))
         using (var bw = new BinaryWriter(fs))
           bw.Write(es.LastExecutedCommandSN);
+
+      foreach (var c in StoreManager.GetCollections(databasename).ToArray())
+        StoreManager.GetObjectStore(databasename, c).ShrinkCollection();
     }
   }
 }
