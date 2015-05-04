@@ -9,6 +9,5 @@ namespace DeNSo.Core.Indexing
   public class Index
   {
     public string _Id { get; set; }
-
   }
 }

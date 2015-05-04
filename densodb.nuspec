@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>densodb.v3</id>
-    <version>3.0.7</version>
+    <version>3.1.0</version>
     <title>densodb v.3 - nosql database</title>
     <authors>Teamdev</authors>
     <owners>teamdev.it</owners>
@@ -29,11 +29,11 @@
     </frameworkAssemblies>
   </metadata>
   <files>
-    <file src="DeNSo.Client.InProcess\bin\Debug\DeNSo.v3.Client.InProcess.dll" target="lib\net45\DeNSo.v3.Client.InProcess.dll" />
-    <file src="DeNSo.Client.InProcess\bin\Debug\DeNSo.v3.Client.InProcess.pdb" target="lib\net45\DeNSo.v3.Client.InProcess.pdb" />
-    <file src="DeNSo.Client.InProcess\bin\Debug\DeNSo.v3.Core.dll" target="lib\net45\DeNSo.v3.Core.dll" />
-    <file src="DeNSo.Client.InProcess\bin\Debug\DeNSo.v3.Core.pdb" target="lib\net45\DeNSo.v3.Core.pdb" />
-    <file src="DeNSo.Client.InProcess\bin\Debug\DeNSo.v3.Meta.dll" target="lib\net45\DeNSo.v3.Meta.dll" />
-    <file src="DeNSo.Client.InProcess\bin\Debug\DeNSo.v3.Meta.pdb" target="lib\net45\DeNSo.v3.Meta.pdb" />
+    <file src="DeNSo.Client.InProcess\bin\Release\DeNSo.v3.Client.InProcess.dll" target="lib\net45\DeNSo.v3.Client.InProcess.dll" />
+    <file src="DeNSo.Client.InProcess\bin\Release\DeNSo.v3.Client.InProcess.pdb" target="lib\net45\DeNSo.v3.Client.InProcess.pdb" />
+    <file src="DeNSo.Client.InProcess\bin\Release\DeNSo.v3.Core.dll" target="lib\net45\DeNSo.v3.Core.dll" />
+    <file src="DeNSo.Client.InProcess\bin\Release\DeNSo.v3.Core.pdb" target="lib\net45\DeNSo.v3.Core.pdb" />
+    <file src="DeNSo.Client.InProcess\bin\Release\DeNSo.v3.Meta.dll" target="lib\net45\DeNSo.v3.Meta.dll" />
+    <file src="DeNSo.Client.InProcess\bin\Release\DeNSo.v3.Meta.pdb" target="lib\net45\DeNSo.v3.Meta.pdb" />
   </files>
 </package>

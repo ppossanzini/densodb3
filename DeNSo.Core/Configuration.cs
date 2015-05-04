@@ -13,7 +13,7 @@ namespace DeNSo
 {
   public static class Configuration
   {
-    public const string Version = "3.0";
+    public const byte Version = 3;
 
     public static string[] BasePath { get; set; }
     public static string[] IndexBasePath { get; set; }
