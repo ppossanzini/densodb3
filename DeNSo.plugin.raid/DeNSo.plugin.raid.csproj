@@ -4,15 +4,13 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{99328297-D0A3-430C-BDE2-7729CAFBED47}</ProjectGuid>
+    <ProjectGuid>{6AA62639-32F5-475D-92AF-8C79AA949582}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DeNSo</RootNamespace>
-    <AssemblyName>DeNSo.v3.Client.Rest</AssemblyName>
+    <RootNamespace>DeNSo.plugin.raid</RootNamespace>
+    <AssemblyName>DeNSo.plugin.raid</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -32,46 +30,18 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\DeNSo.Client.InProcess\IIndexer.cs">
-      <Link>IIndexer.cs</Link>
-    </Compile>
-    <Compile Include="..\DeNSo.Client.InProcess\Indexer.cs">
-      <Link>Indexer.cs</Link>
-    </Compile>
-    <Compile Include="..\DeNSo.Client.InProcess\IndexerExtensions.cs">
-      <Link>IndexerExtensions.cs</Link>
-    </Compile>
-    <Compile Include="CompressEnabledWebClient.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="CQRS\Command.cs" />
-    <Compile Include="CQRS\Query.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Session.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\DeNSo.Meta\DeNSo.Meta.csproj">
-      <Project>{affe6c48-96fd-4cf5-a205-055732a90032}</Project>
-      <Name>DeNSo.Meta</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

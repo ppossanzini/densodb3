@@ -14,7 +14,6 @@ using System.Threading;
 
 namespace DeNSo
 {
-
   public class ObjectStore : IObjectStore
   {
     private int _indexpossibleincoerences = 0;
@@ -22,6 +21,7 @@ namespace DeNSo
 
     private const byte K = 75;
     private const byte S = 83;
+    private const short dataformatversion = 01;
 
     internal volatile C5.TreeDictionary<string, long> _primarystore = new C5.TreeDictionary<string, long>();
     private string _fullcollectionpath = string.Empty;
@@ -37,7 +37,6 @@ namespace DeNSo
     private ManualResetEvent _StoreReady = new ManualResetEvent(false);
     private ManualResetEvent _CanWrite = new ManualResetEvent(true);
     private ReaderWriterLockSlim locker = new ReaderWriterLockSlim();
-
 
     public int Count()
     {
@@ -234,6 +233,7 @@ namespace DeNSo
     {
       var position = _writingStream.Position;
       _writer.Write(K);
+      _writer.Write(dataformatversion);
       _writer.Write(doc.Length);
       _writer.Write(key);
       _writer.Write(doc);
@@ -256,6 +256,7 @@ namespace DeNSo
         var check = _reader.ReadByte();
         if (check == K)
         {
+          var ver = _reader.ReadInt16();
           var len = _reader.ReadInt32();
           var id = _reader.ReadString();
           return _reader.ReadBytes(len);
@@ -271,7 +272,6 @@ namespace DeNSo
       LockForWrite(() =>
       {
         _writer.Close();
-
         lock (_readingStream)
           _reader.Close();
       });
@@ -295,6 +295,7 @@ namespace DeNSo
             {
               var pos = _readingStream.Position;
               var c = _reader.ReadByte();
+              var ver = _reader.ReadInt16();
               var len = _reader.ReadInt32();
               var id = _reader.ReadString();
               _readingStream.Seek(len, SeekOrigin.Current);
@@ -336,6 +337,7 @@ namespace DeNSo
 
         byte[] buffer = null;
         string id;
+        short ver;
         int len;
         byte check;
         bool needtowrite = false;
@@ -345,6 +347,7 @@ namespace DeNSo
           _readingStream.Position = myposition;
 
           check = _reader.ReadByte();
+          ver = _reader.ReadInt16();
           len = _reader.ReadInt32();
           id = _reader.ReadString();
 
@@ -364,6 +367,7 @@ namespace DeNSo
           {
             _writingStream.Position = writingposition;
             _writer.Write(K);
+            _writer.Write(dataformatversion);
             _writer.Write(len);
             _writer.Write(id);
             _writer.Write(buffer);

@@ -272,5 +272,10 @@ namespace DeNSo.REST
 
     #endregion
 
+    #region Indexing
+
+
+
+    #endregion
   }
 }

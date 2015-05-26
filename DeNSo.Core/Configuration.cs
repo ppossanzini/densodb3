@@ -41,7 +41,6 @@ namespace DeNSo
       }
       catch (Exception ex)
       {
-
       }
       IndexBasePath = BasePath;
 
