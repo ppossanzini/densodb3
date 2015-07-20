@@ -6,8 +6,18 @@ using System.Text;
 using System.Threading.Tasks;
 
 
-[assembly: InternalsVisibleTo("DeNSo.Client.Rest")]
-[assembly: InternalsVisibleTo("DeNSo.Client.InProcess")]
+[assembly: InternalsVisibleTo("DeNSo.Client.Rest, PublicKey=" +
+  "0024000004800000940000000602000000240000525341310004000001000100c98f670ec6f0ac" +
+  "f9c8529c014464afba633163628ff0813d34e6bff45a4a35bbc439a8aebe6ef2ee4ccf8467e197" +
+  "598fd7fb97b574c38a57ed6d853d8d1a95ad1c45030116bdfe87579cf1d44a4c9fb79a7a0296df" +
+  "cebde92e0565f1a72cc0644c8089da4dc5645e64f62a035784b14b18b3f4350f20b3902daef4be" +
+  "e701aeee")]
+[assembly: InternalsVisibleTo("DeNSo.v3.Client.InProcess, PublicKey=" +
+  "0024000004800000940000000602000000240000525341310004000001000100c98f670ec6f0ac" +
+  "f9c8529c014464afba633163628ff0813d34e6bff45a4a35bbc439a8aebe6ef2ee4ccf8467e197" +
+  "598fd7fb97b574c38a57ed6d853d8d1a95ad1c45030116bdfe87579cf1d44a4c9fb79a7a0296df" +
+  "cebde92e0565f1a72cc0644c8089da4dc5645e64f62a035784b14b18b3f4350f20b3902daef4be" +
+  "e701aeee")]
 
 namespace DeNSo
 {

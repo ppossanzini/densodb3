@@ -11,7 +11,14 @@ using System.Text;
 using System.IO.IsolatedStorage;
 using System.ComponentModel;
 using System.Threading;
+using System.Runtime.CompilerServices;
 
+[assembly: InternalsVisibleTo("denso.test, PublicKey=" +
+  "0024000004800000940000000602000000240000525341310004000001000100c98f670ec6f0ac" +
+  "f9c8529c014464afba633163628ff0813d34e6bff45a4a35bbc439a8aebe6ef2ee4ccf8467e197" +
+  "598fd7fb97b574c38a57ed6d853d8d1a95ad1c45030116bdfe87579cf1d44a4c9fb79a7a0296df" +
+  "cebde92e0565f1a72cc0644c8089da4dc5645e64f62a035784b14b18b3f4350f20b3902daef4be" +
+  "e701aeee")]
 namespace DeNSo
 {
   public class ObjectStore : IObjectStore
@@ -21,7 +28,11 @@ namespace DeNSo
 
     private const byte K = 75;
     private const byte S = 83;
-    private const short dataformatversion = 01;
+    private const int _blocksize = 1024;
+    private const short dataformatversion = 02;
+    private byte[] _blocks;
+
+    private long _firstSecureBlockPosition = 0;
 
     internal volatile C5.TreeDictionary<string, long> _primarystore = new C5.TreeDictionary<string, long>();
     private string _fullcollectionpath = string.Empty;
@@ -46,7 +57,6 @@ namespace DeNSo
     public IEnumerable<string> GetAllKeys()
     {
       _StoreReady.WaitOne();
-
       return LockForRead(() => _primarystore.Keys.ToArray());
     }
 
@@ -97,6 +107,7 @@ namespace DeNSo
         _writingStream.Position = 0;
         _writingStream.SetLength(0);
         _writer.Write(Configuration.Version);
+        _firstSecureBlockPosition = _writer.BaseStream.Position;
         _writer.Flush();
       });
     }
@@ -145,7 +156,7 @@ namespace DeNSo
       }
     }
 
-    private byte[] InternalDictionaryGet(string key)
+    internal byte[] InternalDictionaryGet(string key)
     {
       if (BloomFilterCheck(key))
       {
@@ -163,7 +174,7 @@ namespace DeNSo
       return null;
     }
 
-    private void InternalDictionaryInsert(string key, long position)
+    internal void InternalDictionaryInsert(string key, long position)
     {
       LockForWrite(() =>
       {
@@ -174,7 +185,7 @@ namespace DeNSo
       BloomFilterAdd(key);
     }
 
-    private void InternalDictionarySet(string key, byte[] doc)
+    internal void InternalDictionarySet(string key, byte[] doc)
     {
       _CanWrite.WaitOne();
       LockForWrite(() =>
@@ -192,7 +203,7 @@ namespace DeNSo
       BloomFilterAdd(key);
     }
 
-    private bool InternalDictionaryContains(string key)
+    internal bool InternalDictionaryContains(string key)
     {
       if (!string.IsNullOrEmpty(key))
         if (BloomFilterCheck(key))
@@ -200,7 +211,7 @@ namespace DeNSo
       return false;
     }
 
-    private bool InternalDictionaryRemove(string key)
+    internal bool InternalDictionaryRemove(string key)
     {
       _CanWrite.WaitOne();
       return LockForWrite(() =>
@@ -217,19 +228,19 @@ namespace DeNSo
       });
     }
 
-    private bool BloomFilterCheck(string key)
+    internal bool BloomFilterCheck(string key)
     {
       lock (_bloomfilter)
         return _bloomfilter.Contains(key);
     }
 
-    private void BloomFilterAdd(string key)
+    internal void BloomFilterAdd(string key)
     {
       lock (_bloomfilter)
         _bloomfilter.Add(key);
     }
 
-    private long WriteDocument(string key, byte[] doc)
+    internal long WriteDocument(string key, byte[] doc)
     {
       var position = _writingStream.Position;
       _writer.Write(K);
@@ -241,14 +252,14 @@ namespace DeNSo
       return position;
     }
 
-    private void StoneDocumentAtPosition(long position)
+    internal void StoneDocumentAtPosition(long position)
     {
       _writingStream.Position = position;
       _writer.Write(S);
       _writer.Seek(0, SeekOrigin.End);
     }
 
-    private byte[] ReadDocument(long position)
+    internal byte[] ReadDocument(long position)
     {
       lock (_readingStream)
       {
@@ -278,7 +289,7 @@ namespace DeNSo
     }
 
     [Description("Internal Use ONLY")]
-    public void LoadCollection(string database, string collection, string basepath = null)
+    public void OpenCollection(string database, string collection, string basepath = null)
     {
       _fullcollectionpath = Path.Combine(Path.Combine(basepath ?? Configuration.GetBasePath(), database), collection + ".coll");
 
@@ -298,7 +309,11 @@ namespace DeNSo
               var ver = _reader.ReadInt16();
               var len = _reader.ReadInt32();
               var id = _reader.ReadString();
-              _readingStream.Seek(len, SeekOrigin.Current);
+              switch (ver)
+              {
+                case 2:
+                case 1: _readingStream.Seek(len, SeekOrigin.Current); break;
+              }
 
               if (c == K)
                 this.InternalDictionaryInsert(id, pos);
@@ -313,11 +328,7 @@ namespace DeNSo
       _writingStream = File.Open(_fullcollectionpath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read);
       _writer = new BinaryWriter(_writingStream);
 
-      if (_writingStream.Length == 0)
-      {
-        _writer.Write(Configuration.Version);
-        _writer.Flush();
-      }
+      if (_writingStream.Length == 0) this.Flush();
 
       _StoreReady.Set();
     }
@@ -392,6 +403,39 @@ namespace DeNSo
         _CanWrite.Set();
       }
       Thread.Sleep(0);
+    }
+
+    internal int CalcDocumentBlocks(int size, int headersize)
+    {
+      return (int)Math.Ceiling((double)(size + headersize) / _blocksize);
+    }
+
+    internal int CalcDocumentDiskSize(int size, int headersize)
+    {
+      return (int)Math.Ceiling((double)(size + headersize) / _blocksize) * _blocksize;
+    }
+
+    internal bool IsBlockUsed(int blockNr)
+    {
+      var br = (Single)blockNr;
+      if (_blocks.Length <= br) throw new IndexOutOfRangeException();
+
+      return (_blocks[(int)Math.Floor(br / 8)] & (128 >> (blockNr % 8))) > 0;
+    }
+
+    internal void SignBlock(int blockNr)
+    {
+      var br = (Single)blockNr;
+      if (_blocks.Length <= br) throw new IndexOutOfRangeException();
+      _blocks[(int)Math.Floor(br / 8)] = (byte)(_blocks[(int)Math.Floor(br / 8)] | (128 >> (blockNr % 8)));
+    }
+
+    internal void ReleaseBlock(int blockNr)
+    {
+      var br = (Single)blockNr;
+      if (_blocks.Length <= br) throw new IndexOutOfRangeException();
+
+      _blocks[(int)Math.Floor(br / 8)] = (byte)(_blocks[(int)Math.Floor(br / 8)] & ~(128 >> (blockNr % 8)));
     }
   }
 }

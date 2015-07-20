@@ -178,6 +178,17 @@ namespace DeNSo
       return EventCommandStatus.Create(_command.Execute(DataBase, JsonConvert.SerializeObject(command), (byte[])null), this);
     }
 
+    public string[] GetCollections()
+    {
+      return _query.Collections(this.DataBase).ToArray();
+    }
+
+    public void Clear()
+    {
+      foreach (var s in _query.Collections(this.DataBase))
+        this.Flush(s);
+    }
+
     #region Delete methods
     public EventCommandStatus Delete<T>(T entity) where T : class
     {

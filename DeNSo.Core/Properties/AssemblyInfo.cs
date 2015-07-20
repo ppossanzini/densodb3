@@ -9,9 +9,9 @@ using System.Security;
 [assembly: AssemblyTitle("DeNSo.Core")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("TeamDev s.r.l.")]
 [assembly: AssemblyProduct("DeNSo.Core")]
-[assembly: AssemblyCopyright("Copyright ©  2014")]
+[assembly: AssemblyCopyright("Paolo Possanzini")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -19,7 +19,7 @@ using System.Security;
 // to COM components.  If you need to access a type in this assembly from 
 // COM, set the ComVisible attribute to true on that type.
 [assembly: ComVisible(false)]
-
+[assembly: AllowPartiallyTrustedCallers(PartialTrustVisibilityLevel = PartialTrustVisibilityLevel.VisibleToAllHosts)]
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("c6a5d222-f781-4d00-980a-004d19e2590c")]
 
@@ -33,6 +33,6 @@ using System.Security;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("3.0.0.*")]
+[assembly: AssemblyFileVersion("3.0.0")]
 //[assembly: AllowPartiallyTrustedCallers()]

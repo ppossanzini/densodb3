@@ -49,13 +49,11 @@ namespace DeNSo
     public static EventStore GetEventStore(string databasename)
     {
       Monitor.Enter(_eventStore);
-      {
-        if (!_eventStore.ContainsKey(databasename))
-          _eventStore.Add(databasename, new EventStore(databasename, 0));
-        Monitor.Exit(_eventStore);
-        return _eventStore[databasename];
-      }
-      return null;
+
+      if (!_eventStore.ContainsKey(databasename))
+        _eventStore.Add(databasename, new EventStore(databasename, 0));
+      Monitor.Exit(_eventStore);
+      return _eventStore[databasename];
     }
 
     public static ObjectStore GetObjectStore(string databasename, string collection)
@@ -68,7 +66,7 @@ namespace DeNSo
         if (!_stores[databasename].ContainsKey(collection))
         {
           var newstore = new ObjectStore();
-          newstore.LoadCollection(databasename, collection);
+          newstore.OpenCollection(databasename, collection);
           _stores[databasename].Add(collection, newstore);
         }
 

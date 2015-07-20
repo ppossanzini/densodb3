@@ -34,6 +34,12 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>densodb.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="protobuf-net">
       <HintPath>..\dipendenze\protobuf-net.dll</HintPath>
@@ -58,6 +64,7 @@
     <Compile Include="TestModel\Model2.cs" />
     <Compile Include="UnitTest1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ObjectStoreTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
@@ -75,6 +82,9 @@
       <Project>{affe6c48-96fd-4cf5-a205-055732a90032}</Project>
       <Name>DeNSo.Meta</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="densodb.snk" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
