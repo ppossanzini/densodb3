@@ -14,13 +14,15 @@ namespace DeNSo
 
   public interface IObjectStore
   {
-    //IEnumerable<byte[]> Where(Func<JObject, bool> filter);
-    void Set(string key, byte[] document);
-    void Remove(string key);
+    void Append(string key, byte[] value);
+    int Count();
     void Flush();
+    System.Collections.Generic.IEnumerable<string> GetAllKeys();
     byte[] GetById(string key);
-
-    float IncoerenceIndexRatio();
-    void Reindex();
+    byte[] GetSet(string key, byte[] value);
+    int Len(string key);
+    System.Collections.Generic.IEnumerable<byte[]> MultipleGet(params string[] keys);
+    void Remove(string key);
+    void Set(string key, byte[] value);
   }
 }

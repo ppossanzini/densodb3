@@ -37,7 +37,7 @@ namespace DeNSo
 
     internal JournalReader(FileStream mappedfile)
     {
-      LogWriter.LogInformation("Initializing Journal Reader", LogEntryType.Information);
+      LogWriter.LogMessage("Initializing Journal Reader", EventLogEntryType.Information);
       OpenLogFile(mappedfile);
     }
 

@@ -24,8 +24,6 @@ namespace DeNSo
     private static DensoExtensions _extensions = new DensoExtensions();
 
     private static bool _started = false;
-    private static Thread _saveDBThread = null;
-    private static Thread _indexerThread = null;
 
     internal static ManualResetEvent ShutDownEvent = new ManualResetEvent(false);
     internal static bool ShuttingDown { get; private set; }
@@ -66,7 +64,7 @@ namespace DeNSo
         if (!_stores[databasename].ContainsKey(collection))
         {
           var newstore = new ObjectStore();
-          newstore.OpenCollection(databasename, collection);
+          newstore.OpenCollection(databasename, collection, Configuration.GetBasePath());
           _stores[databasename].Add(collection, newstore);
         }
 
@@ -77,27 +75,19 @@ namespace DeNSo
     {
       if (!_started)
       {
-        LogWriter.LogInformation("Starting StoreManager", LogEntryType.Warning);
+        LogWriter.LogMessage("Starting StoreManager", EventLogEntryType.Warning);
         ShutDownEvent.Reset();
 
-        LogWriter.LogInformation("Initializing Extensions", LogEntryType.Warning);
+        LogWriter.LogMessage("Initializing Extensions", EventLogEntryType.Warning);
         // Init all the extensions. 
         _extensions.Init();
         foreach (var db in (GetDatabases()))
         {
-          LogWriter.LogInformation(string.Format("Opening Database {0}", db), LogEntryType.Warning);
+          LogWriter.LogMessage(string.Format("Opening Database {0}", db), EventLogEntryType.Warning);
           OpenDataBase(db);
         }
 
-        _saveDBThread = new Thread(new ThreadStart(SaveDBThreadMethod));
-        _saveDBThread.Priority = ThreadPriority.AboveNormal;
-        _saveDBThread.Start();
-
-        _indexerThread = new Thread(new ThreadStart(CheckBloomIndexes));
-        _indexerThread.IsBackground = true;
-        _indexerThread.Start();
-
-        LogWriter.LogInformation("Store Manager initialization completed", LogEntryType.SuccessAudit);
+        LogWriter.LogMessage("Store Manager initialization completed", EventLogEntryType.SuccessAudit);
         _started = true;
       }
     }
@@ -111,11 +101,8 @@ namespace DeNSo
       {
         var collections = GetCollections(db);
         foreach (var coll in collections)
-          GetObjectStore(db, coll).SaveCollection();
+          GetObjectStore(db, coll).CloseCollection();
       }
-
-      if (_saveDBThread != null)
-        _saveDBThread.Join((int)new TimeSpan(0, 5, 0).TotalMilliseconds);
 
       Monitor.Enter(_eventStore);
       _eventStore.Clear();
@@ -171,43 +158,6 @@ namespace DeNSo
       }
     }
 
-    private static void SaveDBThreadMethod()
-    {
-      while (!ShutDownEvent.WaitOne(2))
-      {
-        ShutDownEvent.WaitOne(Configuration.SaveInterval);
-        //lock (_stores)
-        foreach (var db in _stores.Keys)
-        {
-          SaveDataBase(db);
-          ShutDownEvent.WaitOne(Configuration.DBCheckTimeSpan);
-        }
-      }
-      ShutDownEvent.Reset();
-    }
-
-    private static void CheckBloomIndexes()
-    {
-      while (!ShutDownEvent.WaitOne(Configuration.ReindexCheck))
-      {
-        var dbkeys = _stores.Keys.ToArray();
-        foreach (var d in dbkeys)
-        {
-          var collkeys = _stores[d].Keys.ToArray();
-          foreach (var c in collkeys)
-          {
-            var errorratio = _stores[d][c].IncoerenceIndexRatio();
-            if (errorratio > 1)
-            {
-              LogWriter.LogInformation(string.Format("Reindexing {0} - {1} - IndexRatio: {2}", d, c, errorratio), LogEntryType.Warning);
-              _stores[d][c].Reindex();
-              LogWriter.LogInformation(string.Format("Completed {0} - {1}", d, c), LogEntryType.Warning);
-            }
-          }
-        }
-      }
-    }
-
     internal static void SaveDataBase(string databasename)
     {
       var es = GetEventStore(databasename);
@@ -216,8 +166,8 @@ namespace DeNSo
         using (var bw = new BinaryWriter(fs))
           bw.Write(es.LastExecutedCommandSN);
 
-      foreach (var c in StoreManager.GetCollections(databasename).ToArray())
-        StoreManager.GetObjectStore(databasename, c).ShrinkCollection();
+      //foreach (var c in StoreManager.GetCollections(databasename).ToArray())
+      //  StoreManager.GetObjectStore(databasename, c).ShrinkCollection();
     }
   }
 }

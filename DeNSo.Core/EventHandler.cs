@@ -20,10 +20,10 @@ namespace DeNSo
 
     internal static void AnalyzeCommandHandlers(ICommandHandler[] handlers)
     {
-      LogWriter.LogInformation("Start analyzing and preparing command handlers", LogEntryType.Warning);
+      LogWriter.LogMessage("Start analyzing and preparing command handlers", EventLogEntryType.Warning);
       foreach (var hand in handlers)
       {
-        LogWriter.LogInformation(string.Format("Registering command handler {0}", hand.GetType().Name), LogEntryType.Information);
+        LogWriter.LogMessage(string.Format("Registering command handler {0}", hand.GetType().Name), EventLogEntryType.Information);
         var attrs = hand.GetType().GetCustomAttributes(typeof(DeNSo.HandlesCommandAttribute), true);
 
         foreach (var at in attrs)
@@ -32,20 +32,20 @@ namespace DeNSo
           if (!_commandHandlers.ContainsKey(commandname))
             _commandHandlers.Add(commandname, new List<ICommandHandler>());
           _commandHandlers[commandname].Add(hand);
-          LogWriter.LogInformation(string.Format(" Handler registered for command {0}", commandname), LogEntryType.SuccessAudit);
+          LogWriter.LogMessage(string.Format(" Handler registered for command {0}", commandname), EventLogEntryType.SuccessAudit);
         }
       }
     }
 
     public static void RegisterGlobalEventHandler(Action<IStore, EventCommand> eventhandler)
     {
-      LogWriter.LogInformation("Registering a global event handler", LogEntryType.SuccessAudit);
+      LogWriter.LogMessage("Registering a global event handler", EventLogEntryType.SuccessAudit);
       _globaleventhandlers.Add(eventhandler);
     }
 
     public static void UnRegisterGlobalEventHandler(Action<IStore, EventCommand> eventhandler)
     {
-      LogWriter.LogInformation("Unregistering a global event handler", LogEntryType.SuccessAudit);
+      LogWriter.LogMessage("Unregistering a global event handler", EventLogEntryType.SuccessAudit);
       _globaleventhandlers.Remove(eventhandler);
     }
 

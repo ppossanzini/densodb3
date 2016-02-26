@@ -31,7 +31,7 @@ namespace DeNSo.Server.Controllers
 
       if (!string.IsNullOrEmpty(value))
       {
-        LogWriter.LogInformation("Received command", LogEntryType.Information);
+        LogWriter.LogMessage("Received command", EventLogEntryType.Information);
         var es = StoreManager.GetEventStore(database);
 
         var cmd = new { _action = DensoBuiltinCommands.Set, _collection = collection, _id = id };
@@ -56,7 +56,7 @@ namespace DeNSo.Server.Controllers
       var value = t.Result;
       if (value != null && value.Length > 0)
       {
-        LogWriter.LogInformation("Received command", LogEntryType.Information);
+        LogWriter.LogMessage("Received command", EventLogEntryType.Information);
         var es = StoreManager.GetEventStore(database);
         var cmd = new { _action = DensoBuiltinCommands.Set, _collection = collection, _id = id };
         return es.Enqueue(new EventCommand() { Command = JsonConvert.SerializeObject(cmd), Data = value });
@@ -68,7 +68,7 @@ namespace DeNSo.Server.Controllers
     [Route("{database}/{collection}/delete/{id}")]
     public long Delete(string database, string collection, string id)
     {
-      LogWriter.LogInformation("Received command", LogEntryType.Information);
+      LogWriter.LogMessage("Received command", EventLogEntryType.Information);
       var es = StoreManager.GetEventStore(database);
 
       var cmd = new { _action = DensoBuiltinCommands.Delete, _collection = collection, _id = id };
@@ -79,7 +79,7 @@ namespace DeNSo.Server.Controllers
     [Route("{database}/{collection}/flush")]
     public long Delete(string database, string collection)
     {
-      LogWriter.LogInformation("Received command", LogEntryType.Information);
+      LogWriter.LogMessage("Received command", EventLogEntryType.Information);
       var es = StoreManager.GetEventStore(database);
 
       var cmd = new { _action = DensoBuiltinCommands.CollectionFlush, _collection = collection };

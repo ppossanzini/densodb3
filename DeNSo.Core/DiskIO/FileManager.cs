@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Linq;
@@ -17,7 +18,7 @@ namespace DeNSo.Core.DiskIO
       if (!Directory.Exists(Path.Combine(basepath, databasename)))
       {
         LogWriter.SeparationLine();
-        LogWriter.LogInformation("Directory for Journaling does not exists. creating it", LogEntryType.Warning);
+        LogWriter.LogMessage("Directory for Journaling does not exists. creating it", EventLogEntryType.Warning);
 
         try
         {

@@ -49,7 +49,7 @@ namespace DeNSo
           plugin.Init();
         }
 
-      EventHandlerManager.AnalyzeCommandHandlers(ImportedHandlers);
+      //EventHandlerManager.AnalyzeCommandHandlers(ImportedHandlers);
     }
 
     private static void AddDirectoryCatalog(AggregateCatalog catalog, string directoryname)

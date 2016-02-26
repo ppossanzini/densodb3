@@ -20,6 +20,7 @@ using System.Security;
 // COM, set the ComVisible attribute to true on that type.
 [assembly: ComVisible(false)]
 [assembly: AllowPartiallyTrustedCallers(PartialTrustVisibilityLevel = PartialTrustVisibilityLevel.VisibleToAllHosts)]
+[assembly: SecurityRules(SecurityRuleSet.Level1)]
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("c6a5d222-f781-4d00-980a-004d19e2590c")]
 
@@ -33,6 +34,6 @@ using System.Security;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("3.0.0.*")]
-[assembly: AssemblyFileVersion("3.0.0")]
+[assembly: AssemblyVersion("4.0.0.*")]
+[assembly: AssemblyFileVersion("4.0.0")]
 //[assembly: AllowPartiallyTrustedCallers()]

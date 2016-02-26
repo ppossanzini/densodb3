@@ -41,7 +41,7 @@ namespace DeNSo
     internal JournalWriter(FileStream mappedfile, JournalWriterMode mode = JournalWriterMode.Normal)
     {
       LogWriter.SeparationLine();
-      LogWriter.LogInformation("Initializing Journal Writer", LogEntryType.Information);
+      LogWriter.LogMessage("Initializing Journal Writer", EventLogEntryType.Information);
       _currentmode = mode;
       OpenLogFile(mappedfile, mode);
     }
@@ -121,7 +121,7 @@ namespace DeNSo
     {
       if (Debugger.IsAttached) return;
 
-      LogWriter.LogInformation("Journalig file is too small, make it bigger", LogEntryType.Information);
+      LogWriter.LogMessage("Journalig file is too small, make it bigger", EventLogEntryType.Information);
       var pos = _logfile.Position;
       _logfile.SetLength(pos + _increasefileby);
       _logfile.Flush();
