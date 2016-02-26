@@ -191,6 +191,9 @@ namespace DeNSo
       {
         if (_primarystore != null)
         {
+          //_primarystore.Commit();
+          _primarystore.UnloadCache();
+          _primarystore.Commit();
           _primarystore.Dispose();
           _primarystore = null;
         }
@@ -199,11 +202,18 @@ namespace DeNSo
 
     internal void OpenCollection(string database, string collection, string basepath = null)
     {
-      _fullcollectionpath = Path.Combine(Path.Combine(basepath ?? Configuration.GetBasePath(), database), collection + ".coll");
+      var dir = Path.Combine(basepath ?? Configuration.GetBasePath(), database);
+      _fullcollectionpath = Path.Combine(dir, collection + ".coll");
       var options = new BPlusTree<string, byte[]>.OptionsV2(PrimitiveSerializer.String, PrimitiveSerializer.Bytes);
+
+      if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
 
       options.CreateFile = CreatePolicy.IfNeeded;
       options.FileName = _fullcollectionpath;
+      //options.StoragePerformance = StoragePerformance.Fastest;
+      options.TransactionLogFileName = _fullcollectionpath + ".tlog";
+      options.CachePolicy = CachePolicy.Recent;
+      options.TransactionLogLimit = 640 * 1024 * 1024; // 64MByte
 
       _primarystore = new CSharpTest.Net.Collections.BPlusTree<string, byte[]>(options);
       _primarystore.EnableCount();

@@ -12,12 +12,17 @@ namespace DeNSo.Commands
     internal string Database;
 
     public Strings Strings { get; private set; }
+    public Raw RawData { get; private set; }
     public Keys Keys { get; private set; }
 
-    internal Collection()
+    internal Collection(string database, string collection)
     {
+      Name = collection;
+      Database = database;
+
       Strings = new Strings(this);
       Keys = new Keys(this);
+      RawData = new Raw(this);
     }
   }
 
@@ -32,7 +37,7 @@ namespace DeNSo.Commands
       {
         var nn = string.Format("{0}_{1}", _database, index);
         if (!_helpers.ContainsKey(nn))
-          _helpers.Add(nn, new Collection() { Database = _database, Name = index });
+          _helpers.Add(nn, new Collection(_database, index));
         return _helpers[nn];
       }
     }

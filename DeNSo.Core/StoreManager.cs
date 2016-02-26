@@ -5,6 +5,7 @@ using System.Text;
 using DeNSo;
 using System.Threading;
 using System.IO;
+using System.Diagnostics;
 
 #if NETFX_CORE
 using System.Threading.Tasks;
@@ -30,7 +31,7 @@ namespace DeNSo
 
     private volatile static Dictionary<string, Dictionary<string, IObjectStore>> _stores = new Dictionary<string, Dictionary<string, IObjectStore>>();
 
-    private volatile static Dictionary<string, EventStore> _eventStore = new Dictionary<string, EventStore>();
+    //private volatile static Dictionary<string, EventStore> _eventStore = new Dictionary<string, EventStore>();
 
     static StoreManager()
     {
@@ -44,15 +45,15 @@ namespace DeNSo
       return null;
     }
 
-    public static EventStore GetEventStore(string databasename)
-    {
-      Monitor.Enter(_eventStore);
+    //public static EventStore GetEventStore(string databasename)
+    //{
+    //  Monitor.Enter(_eventStore);
 
-      if (!_eventStore.ContainsKey(databasename))
-        _eventStore.Add(databasename, new EventStore(databasename, 0));
-      Monitor.Exit(_eventStore);
-      return _eventStore[databasename];
-    }
+    //  if (!_eventStore.ContainsKey(databasename))
+    //    _eventStore.Add(databasename, new EventStore(databasename, 0));
+    //  Monitor.Exit(_eventStore);
+    //  return _eventStore[databasename];
+    //}
 
     public static ObjectStore GetObjectStore(string databasename, string collection)
     {
@@ -104,10 +105,10 @@ namespace DeNSo
           GetObjectStore(db, coll).CloseCollection();
       }
 
-      Monitor.Enter(_eventStore);
-      _eventStore.Clear();
+      //Monitor.Enter(_eventStore);
+      //_eventStore.Clear();
 
-      Monitor.Exit(_eventStore);
+      //Monitor.Exit(_eventStore);
       _stores.Clear();
       _started = false;
     }
@@ -134,37 +135,37 @@ namespace DeNSo
 
     private static void OpenDataBase(string databasename)
     {
-      try
-      {
-        var filename = Path.Combine(Path.Combine(Configuration.GetBasePath(), databasename), "denso.trn");
+      //try
+      //{
+      //  var filename = Path.Combine(Path.Combine(Configuration.GetBasePath(), databasename), "denso.trn");
 
-        Monitor.Enter(_eventStore);
-        if (!_eventStore.ContainsKey(databasename))
-        {
-          long eventcommandsn = 0;
-          if (File.Exists(filename))
-            using (var fs = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
-              if (fs.Length > 0)
-                using (var br = new BinaryReader(fs))
-                  eventcommandsn = br.ReadInt64();
+      //  Monitor.Enter(_eventStore);
+      //  if (!_eventStore.ContainsKey(databasename))
+      //  {
+      //    long eventcommandsn = 0;
+      //    if (File.Exists(filename))
+      //      using (var fs = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
+      //        if (fs.Length > 0)
+      //          using (var br = new BinaryReader(fs))
+      //            eventcommandsn = br.ReadInt64();
 
-          _eventStore.Add(databasename, new EventStore(databasename, eventcommandsn));
-        }
-        Monitor.Exit(_eventStore);
-      }
-      catch (Exception e)
-      {
-        LogWriter.LogException(e);
-      }
+      //    _eventStore.Add(databasename, new EventStore(databasename, eventcommandsn));
+      //  }
+      //  Monitor.Exit(_eventStore);
+      //}
+      //catch (Exception e)
+      //{
+      //  LogWriter.LogException(e);
+      //}
     }
 
     internal static void SaveDataBase(string databasename)
     {
-      var es = GetEventStore(databasename);
-      foreach (var path in Configuration.BasePath)
-        using (var fs = File.Create(Path.Combine(Path.Combine(path, databasename), "denso.trn")))
-        using (var bw = new BinaryWriter(fs))
-          bw.Write(es.LastExecutedCommandSN);
+      //var es = GetEventStore(databasename);
+      //foreach (var path in Configuration.BasePath)
+      //  using (var fs = File.Create(Path.Combine(Path.Combine(path, databasename), "denso.trn")))
+      //  using (var bw = new BinaryWriter(fs))
+      //    bw.Write(es.LastExecutedCommandSN);
 
       //foreach (var c in StoreManager.GetCollections(databasename).ToArray())
       //  StoreManager.GetObjectStore(databasename, c).ShrinkCollection();

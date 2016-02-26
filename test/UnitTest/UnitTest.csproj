@@ -3,11 +3,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{86B82378-37E7-4A49-B1D8-8FB6C1D2DD29}</ProjectGuid>
+    <ProjectGuid>{DA76B962-4E8E-42C9-8711-C500E3308D9A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DeNSo.test</RootNamespace>
-    <AssemblyName>denso.test</AssemblyName>
+    <RootNamespace>UnitTest</RootNamespace>
+    <AssemblyName>UnitTest</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -34,16 +34,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup>
-    <SignAssembly>true</SignAssembly>
-  </PropertyGroup>
-  <PropertyGroup>
-    <AssemblyOriginatorKeyFile>densodb.snk</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="protobuf-net">
-      <HintPath>..\dipendenze\protobuf-net.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
   </ItemGroup>
   <Choose>
@@ -59,32 +50,22 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="TestModel\Model1.cs" />
-    <Compile Include="TestModel\Model3.cs" />
-    <Compile Include="TestModel\Model2.cs" />
-    <Compile Include="UnitTest1.cs" />
+    <Compile Include="BaseTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ObjectStoreTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <WCFMetadata Include="Service References\" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\DeNSo.Client.InProcess\DeNSo.Client.InProcess.csproj">
+    <ProjectReference Include="..\..\DeNSo.Client.InProcess\DeNSo.Client.InProcess.csproj">
       <Project>{89bac01d-3187-40fa-9519-b35741523a60}</Project>
       <Name>DeNSo.Client.InProcess</Name>
     </ProjectReference>
-    <ProjectReference Include="..\DeNSo.Core\DeNSo.Core.csproj">
+    <ProjectReference Include="..\..\DeNSo.Core\DeNSo.Core.csproj">
       <Project>{3b145c16-3e12-4d0c-a7a7-73ac86d0804d}</Project>
       <Name>DeNSo.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\DeNSo.Meta\DeNSo.Meta.csproj">
+    <ProjectReference Include="..\..\DeNSo.Meta\DeNSo.Meta.csproj">
       <Project>{affe6c48-96fd-4cf5-a205-055732a90032}</Project>
       <Name>DeNSo.Meta</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="densodb.snk" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

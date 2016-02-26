@@ -267,7 +267,6 @@ namespace DeNSo
 
     #endregion
 
-
     public static void ShutDown()
     {
       StoreManager.ShutDown();

@@ -63,12 +63,6 @@
     <Compile Include="DiskIO\FileManager.cs" />
     <Compile Include="DiskIO\JournalReader.cs" />
     <Compile Include="DiskIO\JournalWriter.cs" />
-    <Compile Include="EventHandler.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="EventStore.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Filters\BloomFilter.cs" />
     <Compile Include="ObjectStore.cs" />
     <Compile Include="ObjectStoreWrapper.cs" />
