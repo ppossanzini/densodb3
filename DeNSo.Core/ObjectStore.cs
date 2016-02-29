@@ -210,6 +210,8 @@ namespace DeNSo
 
       options.CreateFile = CreatePolicy.IfNeeded;
       options.FileName = _fullcollectionpath;
+
+      options.UseStorageCache = true;
       //options.StoragePerformance = StoragePerformance.Fastest;
       options.FileGrowthRate = 1024;
       options.FileBlockSize = 4096;
