@@ -8,17 +8,16 @@ namespace DeNSo.Commands
 {
   public class Strings : BaseCommand
   {
-    private ObjectStore _store;
-    public Strings(Collection collection) { _store = StoreManager.GetObjectStore(collection.Database, collection.Name); }
+    public Strings(Collection collection) { Collection = collection; }
 
-    public void Append(string key, string value) { _store.Append(key, value.ToPlainByteArray()); }
-    public string Get(string key) { return _store.GetById(key).ToPlainString(); }
-    public void Set(string key, string value) { _store.Set(key, value.ToPlainByteArray()); }
-    public int Len(string key) { return _store.Len(key); }
-    public string GetSet(string key, string value) { return _store.GetSet(key, value.ToPlainByteArray()).ToPlainString(); }
+    public void Append(string key, string value) { GetStore().Append(key, value.ToPlainByteArray()); }
+    public string Get(string key) { return GetStore().GetById(key).ToPlainString(); }
+    public void Set(string key, string value) { GetStore().Set(key, value.ToPlainByteArray()); }
+    public int Len(string key) { return GetStore().Len(key); }
+    public string GetSet(string key, string value) { return GetStore().GetSet(key, value.ToPlainByteArray()).ToPlainString(); }
     public IEnumerable<string> Get(params string[] keys)
     {
-      foreach (var r in _store.MultipleGet(keys))
+      foreach (var r in GetStore().MultipleGet(keys))
         yield return r.ToPlainString();
       yield break;
     }

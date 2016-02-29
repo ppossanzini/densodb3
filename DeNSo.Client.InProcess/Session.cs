@@ -40,7 +40,7 @@ namespace DeNSo
 
     private Session()
     {
-      StoreManager.Start();      
+      StoreManager.Start();
     }
 
     #region Set Methods
@@ -270,6 +270,7 @@ namespace DeNSo
     public static void ShutDown()
     {
       StoreManager.ShutDown();
+
     }
 
     public static void Start()

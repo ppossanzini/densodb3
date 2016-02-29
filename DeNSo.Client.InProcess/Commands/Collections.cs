@@ -41,5 +41,10 @@ namespace DeNSo.Commands
         return _helpers[nn];
       }
     }
+
+    public void Close()
+    {
+      _helpers.Clear();
+    }
   }
 }

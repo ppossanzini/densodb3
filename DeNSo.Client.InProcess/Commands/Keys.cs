@@ -8,13 +8,12 @@ namespace DeNSo.Commands
 {
   public class Keys : BaseCommand
   {
-    private ObjectStore _store;
-    public Keys(Collection collection) { _store = StoreManager.GetObjectStore(collection.Database, collection.Name); }
+    public Keys(Collection collection) { this.Collection = collection; }
 
-    public IEnumerable<String> All { get { return _store.GetAllKeys(); } }
-    public void Remove(string key) { _store.Remove(key); }
-    public int Count() { return _store.Count(); }
-    public void Flush() { _store.Flush(); }
-    public int Len(string key) { return _store.Len(key); }
+    public IEnumerable<String> All { get { return GetStore().GetAllKeys(); } }
+    public void Remove(string key) { GetStore().Remove(key); }
+    public int Count() { return GetStore().Count(); }
+    public void Flush() { GetStore().Flush(); }
+    public int Len(string key) { return GetStore().Len(key); }
   }
 }

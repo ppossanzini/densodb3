@@ -9,5 +9,11 @@ namespace DeNSo.Commands
   public abstract class BaseCommand
   {
     internal Collection Collection;
+
+    private ObjectStore _store;
+    internal ObjectStore GetStore()
+    {
+      return StoreManager.GetObjectStore(Collection.Database, Collection.Name);
+    }
   }
 }

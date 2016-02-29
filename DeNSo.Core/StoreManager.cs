@@ -78,6 +78,7 @@ namespace DeNSo
       {
         LogWriter.LogMessage("Starting StoreManager", EventLogEntryType.Warning);
         ShutDownEvent.Reset();
+        ShuttingDown = false;
 
         LogWriter.LogMessage("Initializing Extensions", EventLogEntryType.Warning);
         // Init all the extensions. 
@@ -98,18 +99,21 @@ namespace DeNSo
       ShutDownEvent.Set();
       ShuttingDown = true;
 
-      foreach (var db in _stores.Keys)
+      lock (_stores)
       {
-        var collections = GetCollections(db);
-        foreach (var coll in collections)
-          GetObjectStore(db, coll).CloseCollection();
-      }
+        foreach (var db in _stores.Keys)
+        {
+          var collections = GetCollections(db);
+          foreach (var coll in collections)
+            GetObjectStore(db, coll).CloseCollection();
 
+        }
+        _stores.Clear();
+      }
       //Monitor.Enter(_eventStore);
       //_eventStore.Clear();
 
       //Monitor.Exit(_eventStore);
-      _stores.Clear();
       _started = false;
     }
 

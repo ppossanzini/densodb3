@@ -22,7 +22,7 @@ namespace test2
 
       Stopwatch s = new Stopwatch();
       s.Start();
-      var data = File.ReadAllBytes(@"c:\downloads\script.sql");
+      var data = File.ReadAllBytes(@"c:\downloads\WhatsApp.apk");
       s.Stop();
 
       Console.WriteLine("Reading file: " + s.Elapsed.TotalMilliseconds);
@@ -43,6 +43,11 @@ namespace test2
 
       Session.ShutDown();
       Session.Start();
+
+      s.Reset();
+      s.Start();
+      data = collection.RawData.Get("t1");
+      s.Stop();
 
     }
   }
