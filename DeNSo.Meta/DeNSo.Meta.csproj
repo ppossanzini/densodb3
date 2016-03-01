@@ -55,6 +55,7 @@
   <ItemGroup>
     <Compile Include="Attributes\CommandAttribute.cs" />
     <Compile Include="BuiltinCommands.cs" />
+    <Compile Include="CollectionType.cs" />
     <Compile Include="CommandKeyword.cs" />
     <Compile Include="Compressor.cs" />
     <Compile Include="DocumentMetadata.cs" />

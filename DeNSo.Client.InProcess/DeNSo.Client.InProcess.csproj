@@ -61,6 +61,7 @@
     <Compile Include="Commands\Keys.cs" />
     <Compile Include="Commands\BaseCommand.cs" />
     <Compile Include="Commands\Raw.cs" />
+    <Compile Include="Commands\Sets.cs" />
     <Compile Include="Commands\Strings.cs" />
     <Compile Include="IIndexer.cs" />
     <Compile Include="Indexer.cs" />
